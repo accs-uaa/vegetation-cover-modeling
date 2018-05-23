@@ -41,9 +41,29 @@ text_writer.close()
 # Convert multi-value input to list
 input_features = input_features.split(';')
 
-#for input in input_features:
-#    fieldMappings.addTable(input)
+# Create field mapping for cover
+fieldmap_cover = arcpy.FieldMap()
+fieldmappings = arcpy.FieldMappings()
 
-arcpy.Merge_management(input_features, output_feature)
+# Get the field name for cover
+cover_field = "cover"
+
+# Add fields to the field mapping
+for input in input_features:
+    fieldmap_cover.addInputField(input, cover_field)
+
+# Add the output field
+cover_name = fieldmap_cover.outputField
+cover_name.name = "cover2"
+fieldmap_cover.outputField = cover_name
+
+# Set merge rule to sum
+fieldmap_cover.mergeRule = "Sum"
+
+# Add field map to the field mappings object
+fieldmappings.addFieldMap(fieldmap_cover)
+
+# Create the output feature class using the field mappings object
+arcpy.Merge_management(input features, output_feature, fieldmappings)
 
 
