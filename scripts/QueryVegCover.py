@@ -95,6 +95,9 @@ projected = arcpy.SpatialReference(3338)
 arcpy.management.XYTableToPoint(temp_csv, temp_shp, "longitude", "latitude", "", geographic)
 arcpy.Project_management(temp_shp, query_output, projected)
 
+# Add XY Coordinates to feature class in the NAD_1983_Alaska_Albers projection
+arcpy.AddXY_management(query_output)
+
 # Delete intermediate files
 arcpy.Delete_management(temp_shp)
 if os.path.exists(temp_csv):

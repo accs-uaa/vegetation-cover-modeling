@@ -23,7 +23,21 @@ These instructions will enable you to run the Vegetation Cover Random Forest too
 A suggested workflow is to create an area of interest, a set of species cover points, and a suite of predictor rasters. Use the tools in this toolbox to do the following:
 
 #### 1. Query vegetation plot data by species:
-This tool queries vegetation plot data from a user's copy of the Alaska Vegetation Plots database. The tool can either query a single taxon or a list of taxa at the species or infraspecies level.
+"Query Vegetation Cover" queries vegetation plot data from a user's copy of the Alaska Vegetation Plots database based on a user-input taxon.
+*Database User*: Enter the name of the database user with access to the vegplots database.
+*Database Password*: Enter the password for the database user with access to the vegplots database.
+*Database Host*: Leave as 'localhost' if the MySQL Server is running on your local machine or change to the server host location.
+*Database Name*: Leave as 'vegplots' to use the default database name or change to match a custom name for the database.
+*Taxon*: Enter the name of an accepted taxon according to the new Flora of Alaska accessible at [https://floraofalaska.org/vascular-flora/](https://floraofalaska.org/vascular-flora/).
+*Workspace*: Select a folder to which the tool can write temporary files.
+*Query Output*: Enter a shapefile or geodatabase feature class to store the output.
+
+#### 2. Average and merge proximal cover:
+"Average Proximal Covers" finds points that are within a user-specified distance of each other, takes the mean of the cover values, and retains one of the proximal points at random.
+
+
+#### 3. Create summed species assemblage cover:
+"Create Assemblage Cover" combines the point outputs from multiple taxa queries into a single output where the cover value of the output is the sum of the cover values of the input.
 
 
 ## Credits
