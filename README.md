@@ -2,7 +2,7 @@
 Python- and R-based ArcGIS toolbox for semi-quantitative modeling and mapping of vegetation cover.
 
 ## Getting Started
-These instructions will enable you to run the Vegetation Cover Random Forest toolbox in ArcGIS Pro. This toolbox is not compatible with ArcGIS Desktop.
+These instructions will enable you to run the Vegetation Cover Modeling toolbox in ArcGIS Pro. This toolbox is not compatible with ArcGIS Desktop.
 
 ## Prerequisites
 1. ArcGIS Pro 2.1.2 or higher
@@ -14,13 +14,20 @@ These instructions will enable you to run the Vegetation Cover Random Forest too
 1. In ArcGIS Pro, select the python management option. Using the conda install option, install the most recent version of scikit-learn and mysql-connector.
 2. Download this repository and unzip it to a folder on a drive accessible to your computer. Local drives may perform better than network drives. The structure and names of files and folders within the repository should not be altered.
 3. In ArcGIS Pro, open the catalog tab, right click the toolbox folder, select "add toolbox", and navigate to the location of the downloaded/unzipped toolbox.
-4. In order to query vegetation data, you will need to set up a mysql server and create an instance of the Alaska VegPlots Database. For more information, see: https://github.com/accs-uaa/vegetation-plots-database
+4. In order to query vegetation data, you will need to set up a mysql server and create an instance of the Alaska VegPlots Database. For more information, see: [https://github.com/accs-uaa/vegetation-plots-database](https://github.com/accs-uaa/vegetation-plots-database).
 
 ## Usage
 
 ### Workflow
-*This section is a work in progress and does not reflect the current toolset.*
-A suggested workflow is to create an area of interest, a set of species cover points, and a suite of predictor rasters. Use the tools in this toolbox to do the following:
+This workflow assumes that the user has set up a copy of the Alaska VegPlots Database on a local MySQL server or an accessible MySQL server. For instructions related to the database, see the database repository at the link in the installation instructions above.
+1. Query the vegetation plot data by species
+2. Remove values less than a user-specified threshold (default is 1) from cover dataset.
+3. If necessary, merge cover values of related taxa.
+3. Average the cover values of points that are closer to each other than a user-specified threshold (default is 60 m).
+4. Classify data
+5. Extract predictor variables to csv
+6. Set up training and test partitions at user-defined proportion (default is 70% training) with proportional numbers of points per class in each partition.
+7. 
 
 #### 1. Query vegetation plot data by species:
 "Query Vegetation Cover" queries vegetation plot data from a user's copy of the Alaska Vegetation Plots database based on a user-input taxon.
