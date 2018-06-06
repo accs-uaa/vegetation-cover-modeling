@@ -26,14 +26,17 @@ database_name = arcpy.GetParameterAsText(3)
 taxon = arcpy.GetParameterAsText(4)
 
 # Define the workspace folder
-workspace = arcpy.GetParameterAsText(5)
+workspace_folder = arcpy.GetParameterAsText(5)
+
+# Define the workspace geodatabase
+workspace_geodatabase = arcpy.GetParameterAsText(6)
 
 # Define the output feature class
-query_output = arcpy.GetParameterAsText(6)
+query_output = arcpy.GetParameterAsText(7)
 
 # Define intermediate files
-temp_csv = os.path.join(workspace, "temp.csv")
-temp_shp = os.path.join(workspace, "temp.shp")
+temp_csv = os.path.join(workspace_folder, "database_export.csv")
+temp_feature = os.path.join(workspace_geodatabase, "database_export")
 
 # Set up the MySQL connection
 arcpy.AddMessage("Initializing database connection...")
@@ -92,13 +95,13 @@ geographic = arcpy.SpatialReference(4269)
 projected = arcpy.SpatialReference(3338)
 
 # Convert csv data to feature class
-arcpy.management.XYTableToPoint(temp_csv, temp_shp, "longitude", "latitude", "", geographic)
-arcpy.Project_management(temp_shp, query_output, projected)
+arcpy.management.XYTableToPoint(temp_csv, temp_feature, "longitude", "latitude", "", geographic)
+arcpy.Project_management(temp_feature, query_output, projected)
 
 # Add XY Coordinates to feature class in the NAD_1983_Alaska_Albers projection
 arcpy.AddXY_management(query_output)
 
 # Delete intermediate files
-arcpy.Delete_management(temp_shp)
+arcpy.Delete_management(temp_feature)
 if os.path.exists(temp_csv):
     os.remove(temp_csv)
