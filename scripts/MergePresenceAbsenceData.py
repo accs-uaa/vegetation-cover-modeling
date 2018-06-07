@@ -14,13 +14,13 @@ import arcpy
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
-# Define the set of input feature class containing cover values for a taxon
+# Define the input feature class containing cover values for a taxon
 cover_feature = arcpy.GetParameterAsText(0)
 
 # Define the set of all possible sites
 survey_sites = arcpy.GetParameterAsText(1)
 
-# Define study area raster to be used as snap raster
+# Define area of interest raster to be used as snap raster
 snap_raster = arcpy.GetParameterAsText(2)
 
 # Define user-specified merge distance
@@ -32,7 +32,7 @@ workspace_geodatabase = arcpy.GetParameterAsText(4)
 # Define output feature class for averaged cover values at user-specified range
 mean_cover_sites = arcpy.GetParameterAsText(5)
 
-# Define output feature class for averaged cover values at user-specified range
+# Define output feature class for redundant sites removed from data selection
 removed_sites = arcpy.GetParameterAsText(6)
 
 # Define intermediate files
@@ -45,6 +45,7 @@ mean_cover_joined = os.path.join(workspace_geodatabase, "mean_cover_joined")
 merged_sites_joined = os.path.join(workspace_geodatabase, "merged_sites_joined")
 
 # Erase survey sites in which the target taxon was present
+arcpy.AddMessage("Formatting absence cover data...")
 arcpy.Erase_analysis(survey_sites, cover_feature, absence_sites, "")
 arcpy.AddXY_management(absence_sites)
 
@@ -64,11 +65,13 @@ arcpy.DeleteField_management(presence_sites, "ID;date;vegObserver1;vegObserver2;
 arcpy.DeleteField_management(absence_sites, "ID;initialProject;initialProjectTitle;plotDimensions;vascularScope;nonvascularScope;lichenScope")
 
 # Merge the presence and the absence sites
+arcpy.AddMessage("Merging presence and absence cover data...")
 arcpy.Merge_management([presence_sites, absence_sites], merged_sites)
 arcpy.AddField_management(merged_sites, "originalID", "LONG", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(merged_sites, "originalID", "!OBJECTID!", "PYTHON", "")
 
 # Convert input cover values to raster using mean rule to average cover values for points within the merge distance
+arcpy.AddMessage("Finding mean value of survey sites that overlap common grid cell...")
 arcpy.env.snapRaster = snap_raster
 arcpy.PointToRaster_conversion(merged_sites, "cover", cover_raster, "MEAN", "NONE", merge_distance)
 
@@ -79,6 +82,7 @@ arcpy.DeleteField_management(merged_sites, "cover")
 arcpy.RasterToPoint_conversion(cover_raster, mean_cover, "Value")
 
 # Use a spatial join to add the mean cover value to the nearest point from the merged sites feature class and remove points that were not nearest to a mean cover point
+arcpy.AddMessage("Pushing mean values to output and removing redundant sites...")
 arcpy.SpatialJoin_analysis(mean_cover, merged_sites, mean_cover_joined, "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", "", "")
 arcpy.SpatialJoin_analysis(merged_sites, mean_cover_joined, merged_sites_joined, "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", "", "")
 arcpy.MakeFeatureLayer_management(merged_sites_joined, "merged_sites_joined_layer")
