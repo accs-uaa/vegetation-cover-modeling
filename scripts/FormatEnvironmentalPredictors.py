@@ -4,7 +4,7 @@
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
 # Created on: 2018-06-06
 # Usage: Must be executed as an ArcPy Script.
-# Description: "Format Environmental Predictors" processes an input raster for use as a predictive variable in a classification or regression model by extracting to the area of interest and matching the cell size and grid. This tool assumes that the input rasters are already in the desired projection.
+# Description: "Format Environmental Predictors" processes an input raster stack for use as predictive variables in a classification or regression model by extracting to the area of interest and matching the cell size and grid. This tool assumes that the input rasters are already in the desired projection for analysis.
 # ---------------------------------------------------------------------------
 
 # Import arcpy module
@@ -25,9 +25,6 @@ data_type = arcpy.GetParameterAsText(2)
 
 #Define output folder
 output_folder = arcpy.GetParameterAsText(3)
-
-# Determine Projection of Area of Interest
-projection = arcpy.Describe(area_of_interest).spatialReference
 
 # Determine cell size of Area of Interest
 cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")

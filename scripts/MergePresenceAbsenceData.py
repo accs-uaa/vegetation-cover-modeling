@@ -4,7 +4,7 @@
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
 # Created on: 2018-05-22
 # Usage: Must be executed as an ArcPy Script.
-# Description: "Merge Presence Absence Data" combines the presence cover data from a database query with the survey sites at which the species was not found. The cover values for points closer than a user-specified merge distance are averaged based on the analysis grid with the point closest to grid center retained.
+# Description: "Merge Presence Absence Data" combines the presence cover data from a database query with the survey sites at which the species was not found. The cover values for points closer than a user-specified merge distance are averaged based on the analysis grid with the point closest to grid center retained. Cover values of zero in the presence data will be merged with zero values generated from the absence data. In the resulting dataset, zero and trace cover are indistinguishable.
 # ---------------------------------------------------------------------------
 
 # Import modules
