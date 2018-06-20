@@ -9,6 +9,7 @@ These instructions will enable you to run the Vegetation Cover Modeling toolbox 
 2. Python 3.5.3 or higher
 3. Scikit-learn 0.18.1 or higher
 4. mysql-connecter 2.0.4 or higher
+5. Access to Google Earth Engine
 
 ### Installing
 1. In ArcGIS Pro, select the python management option. Using the conda install option, install the most recent version of scikit-learn and mysql-connector.
@@ -19,7 +20,10 @@ These instructions will enable you to run the Vegetation Cover Modeling toolbox 
 ## Usage
 
 ### Earth Engine
-The scripts developed for google earth engine create cloud-masked, best-pixel composite images using Landsat 8 for NDVI, NDMI, NDWI, NDSI, NBR, EVI-2, and all raw bands from July imagery between 2013 and 2017 (inclusive). The best pixel selection is based on maximum NDVI for all metrics to ensure uniform pixel selection from all bands.
+The Earth Engine script produces a cloud-reduced greenest pixel composite (based on maximum NDVI) for bands 1-7 plus Enhanced Vegetation Index-2 (EVI2), Normalized Burn Ratio (NBR), Normalized Difference Moisture Index (NDMI), Normalized Difference Snow Index (NDSI), Normalized Difference Vegetation Index (NDVI), Normalized Difference Water Index (NDWI) using the Landsat8 Top-Of-Atmosphere (TOA) reflectance image collection filtered to the month of July from 2013 through 2017. See Chander et al. 2009 for a description of the TOA reflectance method. from July imagery between 2013 and 2017 (inclusive). The best pixel selection is based on maximum NDVI for all metrics to ensure uniform pixel selection from all bands.
+* In [Google Earth Engine code editor](https://code.earthengine.google.com/), paste this script into the javascript window. You can save modify and save the script in a git repository within Google Earth Engine.
+* Run the script. The results can be inspected on the map (shows NDVI), in the inspector, and in the console.
+* Once the imagery has been prepared, each image must be exported to a Google Drive by clicking the "run" button. The export process requires a large amount of available storage in the Google Drive and takes a long time.
 
 ### Processing Workflow
 This workflow assumes that the user has set up a copy of the Alaska VegPlots Database on a local MySQL server or an accessible MySQL server. For instructions related to the database, see the database repository at the link in the installation instructions above.
