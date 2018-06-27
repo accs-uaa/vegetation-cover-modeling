@@ -8,7 +8,8 @@
 # ---------------------------------------------------------------------------
 
 # Import arcpy module
-import arcpy, os
+import arcpy
+import os
 from arcpy.sa import *
 
 # Set overwrite option
@@ -39,13 +40,16 @@ arcpy.PolygonToRaster_conversion(study_area, "OBJECTID", area_of_interest, "CELL
 # Split input rasters string into a list
 input_rasters = input_rasters.split(";")
 
+# Set the cell size environment
+arcpy.env.cellSize = int(cell_size)
+
 # Create a function to refine the initial area of interest based on the data extent of the unformatted predictor rasters
 def refineAOI(area, predictor):
     # Extract initial area of interest to predictor raster
     arcpy.AddMessage("Refining area of interest...")
     outExtract = ExtractByMask(area, predictor)
     arcpy.Delete_management(area)
-    arcpy.CopyRaster_management(outExtract, area, "", "", "", "NONE", "NONE", "1_BIT", "NONE", "NONE")
+    arcpy.CopyRaster_management(outExtract, area, "", "", "", "NONE", "NONE", "1_BIT", "NONE", "NONE", "TIFF", "NONE")
 
 # Iterate the refine AOI function for each raster selected as an input
 for input_raster in input_rasters:

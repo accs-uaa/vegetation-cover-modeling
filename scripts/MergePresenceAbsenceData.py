@@ -8,9 +8,9 @@
 # ---------------------------------------------------------------------------
 
 # Import modules
-import os
 import arcpy
-	
+import os
+
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 

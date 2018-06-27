@@ -4,11 +4,12 @@
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
 # Created on: 2018-06-06
 # Usage: Must be executed as an ArcPy Script.
-# Description: "Format Environmental Predictors" processes an input raster stack for use as predictive variables in a classification or regression model by extracting to the area of interest and matching the cell size and grid. This tool assumes that the input rasters are already in the desired projection for analysis.
+# Description: "Format Environmental Predictors" processes an input raster stack for use as predictive variables in a classification or regression model by extracting to the area of interest and matching the cell size and grid. This tool assumes that the input rasters are already in the desired projection for analysis and that all raster values can be represented as integers without significant data loss.
 # ---------------------------------------------------------------------------
 
 # Import arcpy module
-import arcpy, os
+import arcpy
+import os
 from arcpy.sa import *
 
 # Set overwrite option
@@ -20,17 +21,12 @@ input_rasters = arcpy.GetParameterAsText(0)
 # Define area of interest
 area_of_interest = arcpy.GetParameterAsText(1)
 
-# Define resampling technique
-data_type = arcpy.GetParameterAsText(2)
-
 #Define output folder
-output_folder = arcpy.GetParameterAsText(3)
+output_folder = arcpy.GetParameterAsText(2)
 
-# Determine cell size of Area of Interest
-cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
-
-# Set the snap raster environment
+# Set the snap raster and cell size environments
 arcpy.env.snapRaster = area_of_interest
+arcpy.env.cellSize = area_of_interest
 
 # Split input rasters string into a list
 input_rasters = input_rasters.split(";")
@@ -40,14 +36,14 @@ def formatRaster(inRaster, outRaster):
     # Extract projected raster to the area of interest
     arcpy.AddMessage("Extracting raster to area of interest...")
     outExtract = ExtractByMask(inRaster, area_of_interest)
+    # Convert extracted raster to integer
+    arcpy.AddMessage("Enforcing integer number format...")
+    integerRaster = Int(RoundDown(outExtract + 0.5))
+    # Copy results to outRaster
     arcpy.AddMessage("Preparing output raster...")
-    if data_type == "Continuous":
-        arcpy.CopyRaster_management(outExtract, outRaster, "", "", "", "NONE", "NONE", "32_BIT_FLOAT", "NONE", "NONE")
-    elif data_type == "Discrete":
-        arcpy.CopyRaster_management(outExtract, outRaster, "", "", "", "NONE", "NONE", "16_BIT_SIGNED", "NONE", "NONE")
+    arcpy.CopyRaster_management(integerRaster, outRaster, "", "", "", "NONE", "NONE", "16_BIT_SIGNED", "NONE", "NONE", "TIFF", "NONE")
 
 # Iterate the format raster function for each raster selected as an input
 for input_raster in input_rasters:
-    filename = os.path.split(input_raster)[1]
-    output_raster = os.path.join(output_folder, filename)
+    output_raster = os.path.join(output_folder, os.path.split(input_raster)[1])
     formatRaster(input_raster, output_raster)
