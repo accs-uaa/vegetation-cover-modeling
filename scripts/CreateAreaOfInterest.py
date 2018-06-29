@@ -27,8 +27,11 @@ cell_size = arcpy.GetParameterAsText(2)
 # Define the snap raster
 snap_raster = arcpy.GetParameterAsText(3)
 
-# Define the output area of interest
+# Define the output area of interest raster
 area_of_interest = arcpy.GetParameterAsText(4)
+
+# Define the output area of interest feature class
+area_of_interest_feature = arcpy.GetParameterAsText(5)
 
 # Set the snap raster environment
 arcpy.env.snapRaster = snap_raster
@@ -54,3 +57,6 @@ def refineAOI(area, predictor):
 # Iterate the refine AOI function for each raster selected as an input
 for input_raster in input_rasters:
     refineAOI(area_of_interest, input_raster)
+
+# Convert the area of interest raster to a feature class
+arcpy.RasterToPolygon_conversion(area_of_interest, area_of_interest_feature, "NO_SIMPLIFY", "VALUE")

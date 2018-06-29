@@ -15,10 +15,10 @@ from arcpy.sa import *
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
-# Define input raster
+# Define input rasters
 input_rasters = arcpy.GetParameterAsText(0)
 
-# Define area of interest
+# Define the area of interest raster
 area_of_interest = arcpy.GetParameterAsText(1)
 
 #Define output folder
@@ -32,18 +32,18 @@ arcpy.env.cellSize = area_of_interest
 input_rasters = input_rasters.split(";")
 
 # Create a function to format predictor rasters
-def formatRaster(inRaster, outRaster):
+def formatRaster(inRaster, extractMask, outRaster):
+    # Convert input raster to integer
+    arcpy.AddMessage("Enforcing integer number format...")
+    integerRaster = Int(RoundDown(Raster(inRaster) + 0.5))
     # Extract projected raster to the area of interest
     arcpy.AddMessage("Extracting raster to area of interest...")
-    outExtract = ExtractByMask(inRaster, area_of_interest)
-    # Convert extracted raster to integer
-    arcpy.AddMessage("Enforcing integer number format...")
-    integerRaster = Int(RoundDown(outExtract + 0.5))
+    outExtract = ExtractByMask(integerRaster, extractMask)
     # Copy results to outRaster
     arcpy.AddMessage("Preparing output raster...")
-    arcpy.CopyRaster_management(integerRaster, outRaster, "", "", "", "NONE", "NONE", "16_BIT_SIGNED", "NONE", "NONE", "TIFF", "NONE")
+    arcpy.CopyRaster_management(outExtract, outRaster, "", "", "-32768", "NONE", "NONE", "16_BIT_SIGNED", "NONE", "NONE", "TIFF", "NONE")
 
 # Iterate the format raster function for each raster selected as an input
 for input_raster in input_rasters:
     output_raster = os.path.join(output_folder, os.path.split(input_raster)[1])
-    formatRaster(input_raster, output_raster)
+    formatRaster(input_raster, area_of_interest, output_raster)

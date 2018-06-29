@@ -65,8 +65,9 @@ influence_dem_ss = os.path.join(work_folder, "influence_dem_ss.tif")
 influence_dem_ssa = os.path.join(work_folder, "influence_dem_ssa.tif")
 influence_dem_drp = os.path.join(work_folder, "influence_dem_drp.txt")
 influence_dem_src = os.path.join(work_folder, "influence_dem_src.tif")
+influence_dem_ord = os.path.join(work_folder, "influence_dem_ord.tif")
 influence_dem_coord = os.path.join(work_folder, "influence_dem_coord.txt")
-influence_dem_net = os.path.join(work_geodatabase, "influence_dem_net")
+influence_dem_net = os.path.join(work_folder, "influence_dem_net.shp")
 influence_dem_tree = os.path.join(work_folder, "influence_dem_tree.txt")
 influence_dem_w = os.path.join(work_folder, "influence_dem_w.tif")
 large_stream_line = os.path.join(work_geodatabase, "large_stream_line")
@@ -96,6 +97,10 @@ arcpy.PeukerDouglasStreamDef_TauDEM(influence_dem_fel, influence_dem_p, "0.4", "
 # Run "Stream Reach And Watershed" function from TauDEM
 arcpy.AddMessage("Running stream reach and watershed...")
 arcpy.StreamReachAndWatershed_TauDEM(influence_dem_fel, influence_dem_p, influence_dem_ad8, influence_dem_src, "", "false", processes_number, influence_dem_ord, influence_dem_tree, influence_dem_coord, influence_dem_net, influence_dem_w)
+
+# Define the projection of the stream network output to match the input Digital Elevation Model
+projection = arcpy.Describe(input_dem).spatialReference
+arcpy.DefineProjection_management(influence_dem_net, projection)
 
 # Clip stream network to study area polygon
 arcpy.AddMessage("Clipping stream network to study area...")
@@ -131,11 +136,15 @@ arcpy.Delete_management(influence_dem_p)
 arcpy.Delete_management(influence_dem_ad8)
 arcpy.Delete_management(influence_dem_ss)
 arcpy.Delete_management(influence_dem_ssa)
-arcpy.Delete_management(influence_dem_drp)
+if os.path.exists(influence_dem_drp) == True:
+    os.remove(influence_dem_drp)
 arcpy.Delete_management(influence_dem_src)
-arcpy.Delete_management(influence_dem_coord)
+if os.path.exists(influence_dem_coord) == True:
+    os.remove(influence_dem_coord)
+arcpy.Delete_management(influence_dem_ord)
 arcpy.Delete_management(influence_dem_net)
-arcpy.Delete_management(influence_dem_tree)
+if os.path.exists(influence_dem_tree) == True:
+    os.remove(influence_dem_tree)
 arcpy.Delete_management(influence_dem_w)
 arcpy.Delete_management(large_stream_line)
 arcpy.Delete_management(small_stream_line)

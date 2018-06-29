@@ -15,10 +15,10 @@ from arcpy.sa import *
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
-# Define input raster
+# Define input imagery tiles
 input_tiles = arcpy.GetParameterAsText(0)
 
-# Define area of interest
+# Define the area of interest raster
 area_of_interest = arcpy.GetParameterAsText(1)
 
 # Define workspace folder
