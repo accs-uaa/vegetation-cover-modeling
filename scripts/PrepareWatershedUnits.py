@@ -24,6 +24,9 @@ area_of_interest = arcpy.GetParameterAsText(1)
 # Define the predict area
 predict_area = arcpy.GetParameterAsText(2)
 
+# Define input rasters
+input_rasters = arcpy.GetParameterAsText(3)
+
 # Define user-specified merge distance
 merge_distance = arcpy.GetParameterAsText(3)
 
@@ -33,17 +36,25 @@ work_folder = arcpy.GetParameterAsText(4)
 # Define empty geodatabase to store output watershed point features
 output_geodatabase = arcpy.GetParameterAsText(5)
 
+# Split input rasters string into a list
+input_rasters = input_rasters.split(";")
+
 # Define intermediate files
 predict_raster = os.path.join(work_folder, "predict_raster.tif")
 predict_feature = os.path.join(output_geodatabase, "predict_feature")
 watersheds_clip = os.path.join(output_geodatabase, "watersheds_clip")
+tempRaster = os.path.join(work_folder, "temp_gridpoints.tif")
 
 # Create a function to create point grids from polygon features
-def buildPointGrids(inFeature, outFeature)
-    tempRaster = os.path.join(work_folder, "temp_gridpoints.tif")
-    cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
+def buildPointGrids(inFeature)
+    # Convert from polygon to raster and raster to point to create point grid
     arcpy.PolygonToRaster_conversion(inFeature, "OBJECTID", tempRaster, "CELL_CENTER", "NONE", cell_size)
-    arcpy.RasterToPoint_conversion(tempRaster, outFeature, "VALUE")
+    # Delete input feature so that it can be replaced with point grid
+    arcpy.Delete_management(inFeature)
+    arcpy.RasterToPoint_conversion(tempRaster, inFeature, "VALUE")
+    # Extract values of predictor variables to point grid
+    ExtractMultiValuesToPoints(outFeature, input_rasters, "NONE")
+    # Delete intermediate files
     arcpy.Delete_management(tempRaster)
 
 # Set the snap raster and cell size environments
@@ -62,16 +73,16 @@ arcpy.Clip_analysis(watersheds, predict_feature, watersheds_clip)
 
 # Split watersheds by attribute and store as feature dataset
 arcpy.AddMessage("Splitting unique watersheds into feature dataset...")
-arcpy.SplitByAttributes_analysis(watersheds_clip, output_workspace, ['HUC10'])
+arcpy.SplitByAttributes_analysis(watersheds_clip, output_geodatabase, ['HUC10'])
 
 # List all watershed feature classes in the 
 arcpy.env.workspace = output_geodatabase
 featureClasses = arcpy.ListFeatureClasses()
 
 # Loop through feature classes and convert them to rasters with the same cell size and grid as the area of interest
+cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 for feature in featureClasses:
-    point_feature = feature + "_pointGrid"
-    buildPointGrids(feature, point_feature)
+    buildPointGrids(feature)
 
 # Delete intermediate files
 arcpy.Delete_management(predict_raster)

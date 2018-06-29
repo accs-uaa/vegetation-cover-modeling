@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 # Prepare Watershed Units
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
-# Created on: 2018-06-27
+# Created on: 2018-06-28
 # Usage: Must be executed as an ArcPy Script.
 # Description: "Generate Model Data" exports csv tables of points for the training, test, complete, and prediction datasets. The points for the prediction units are gridded points based on the area of interest cell size and grid. All of the analyses variables are extracted to the table as columns.
 # ---------------------------------------------------------------------------

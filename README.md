@@ -40,58 +40,65 @@ The following topographic predictor variables were calculated from the National 
 9. Site Exposure Index (multiplied by 100)
 
 ### Calculation of Hydrologic Predictor Variables
-The following hydrologic predictor variables were calculated using scripts based partially on the calculation of a stream network from a digital elevation model using TauDEM. These script tools are located in the "Predictors" toolset of the Vegetation Cover Toolbox. In addition to the National Elevation Dataset 60 m Second Digital Elevation Model used by each of these tools, "Distance to Floodplain" used the Circumboreal Vegetation Map and the Landscape Level Ecological Mapping of Northern Alaska.
+The following hydrologic predictor variables were calculated using scripts based partially on the calculation of a stream network from a digital elevation model using TauDEM. These script tools are located in the "Predictors" toolset of the Vegetation Cover Toolbox. In addition to the National Elevation Dataset 60 m Second Digital Elevation Model (DEM) used by each of these tools, "Distance to Floodplain" used the Circumboreal Vegetation Map and the Landscape Level Ecological Mapping of Northern Alaska.
 
 #### Distance To Streams (Large and Small)
 "Distance to Streams (Large and Small)" processes a Digital Elevation Model into a stream network attributed with stream order and then segregates streams of orders 3-9 (large streams) from streams of orders 1-2 (small streams). The euclidean distance to each type of stream is calculated and output as an integer distance raster. The stream network is also output as a feature class. The hydrographic area of influence must be larger than the study area to account for flow that enters the study area and influences stream order.
-* *Input Digital Elevation Model for Alaska*: Select a digital elevation model that provides full coverage of the study area. The National Elevation Dataset or 3D Elevation Program 60 m Digital Elevation Model provides coverage for the entire state of Alaska.
-* *Area of Influence*: Select the hydrographic area of influence feature class for the study area. Hydrographic area of influence should include the entire study area plus watersheds that contribute flow to watersheds within the study area. This ensures that watersheds outside the study area are accounted for when calculating stream order of streams within the study area.
-* *Study Area*: Select the study area feature class. This is the polygon that defines the region of analysis.
+* *Input DEM*: Digital elevation model (DEM) that provides full coverage of the hydrographic area of influence. The National Elevation Dataset or 3D Elevation Program 60 m Digital Elevation Model provides coverage for the entire state of Alaska.
+* *Area of Influence*: Hydrographic area of influence feature class for the study area. Hydrographic area of influence should include the entire study area plus watersheds that contribute flow to watersheds within the study area. This ensures that watersheds outside the study area are accounted for when calculating stream order of streams within the study area.
+* *Study Area*: Polygon feature class that defines the region of analysis.
 * *Cell Size*: Define the cell size, which should match the desired cell size of analysis and model output.
-* *TauDEM*: Select location of the TauDEM ArcGIS Toolbox.
+* *TauDEM*: Location of the TauDEM ArcGIS Toolbox.
 * *Number of Processes*: Define the number of processes to run for TauDEM calculations. The default is 12. Less capable machines should be set to run 8 processes.
-* *Work Folder*: Define a folder that can store intermediate files during the processing.
-* *Work Geodatabase*: Define a geodatabase that can store intermediate feature classes during the processing.
-* *Stream Network*: Line feature class of stream network attributed with stream order, as calculated from digital elevation model.
-* *Distance to Large Streams*: Raster dataset with values representing distance in meters to the nearest large stream feature.
-* *Distance to Small Streams*: Raster dataset with values representing distance in meters to the nearest small stream feature.
+* *Work Folder*: Folder that can store intermediate files during the processing.
+* *Work Geodatabase*: Geodatabase that can store intermediate feature classes during the processing.
+* *Stream Network*: Output line feature class of stream network attributed with stream order, as calculated from digital elevation model.
+* *Distance to Large Streams*: Output raster dataset with values representing distance in meters to the nearest large stream feature.
+* *Distance to Small Streams*: Output raster dataset with values representing distance in meters to the nearest small stream feature.
 
 #### Distance to Floodplain
-"Distance to Floodplain" processes a Digital Elevation Model, the Circumboreal Vegetation Map, and the Landscape Level Ecological Mapping of Northern Alaska to create a coarse floodplain map for Northern Alaska. The euclidean distance to floodplain is calculated and output as an integer distance raster. The floodplain distribution is also output as a feature class. This tool must be executed after the "Distance to Streams (Large and Small)" tool because it requires the stream network feature class as an input.
-
+"Distance to Floodplain" processes a stream network generated from a digital elevation model using TauDEM, the Circumboreal Vegetation Map, and the Landscape Level Ecological Mapping of Northern Alaska to create a coarse floodplain map for Northern Alaska. The euclidean distance to floodplain is calculated and output as an integer distance raster. The floodplain distribution is also output as a feature class. This tool must be executed after the "Distance to Streams (Large and Small)" tool because it requires the stream network feature class as an input.
+* *Stream Network*: Stream network feature class that was generated from the "Distance to Streams" tool.
+* *Landscape Level Ecological Mapping of Northern Alaska*: Most recent version of the Landscape Level Ecological Mapping of Northern Alaska dataset. As of June 2018, the most recent version was 2014.
+* *Circumboreal Vegetation Map - Alaska and Yukon*: Most recent version of the Circumboreal Vegetation Map - Alaska and Yukon.
+* *Study Area*: Polygon feature class that defines the region of analysis.
+* *Snap Raster*: Define a raster to match the grid alignment of the area of interest. The snap raster should be equivalent to the grid alignment of the desired model output. As of June 2018, the most recent version was 2015.
+* *Cell Size*: Define the cell size, which should match the desired cell size of analysis and model output.
+* *Work Geodatabase*: Geodatabase that can store intermediate feature classes during the processing.
+* *Floodplain Feature*: Output feature class of the unified floodplain surfaces within the study area.
+* *Distance to Floodplain*: Output raster dataset with values representing distance in meteres to the nearest floodplain.
 
 ### Calculation of Climate Predictor Variables
 All climate variables were downloaded as historic or projected decadal averages from [Scenarios Network for Alaska and Arctic Planning](https://www.snap.uaf.edu/). Projected variables all use the RCP6.0 (for file names and scripts, written as RCP60). Historic data was based on the CRU TS3.1. Decadal averages for all climate variables except summer warmth index were averaged into inter-decadal averages using the "Average Climate Data" tool. Summer warmth index was calculated by summing the inter-decadal monthly average temperatures per day for May through September using the "Summer Warmth Index" tool.
 
 #### Average Climate Data
 "Average Climate Data" processes decadal average climate datasets to find the mean for multiple decades. No other formatting is performed by this tool.
+* *Input Rasters*: Input decadal climate average rasters of a single climate metric for decades that are to be combined into a single inter-decadal average.
+* *Output Raster*: Output inter-decadal climate average of a single climate metric.
 
 #### Summer Warmth Index
 "Summer Warmth Index" processes decadal average mean monthly temperature datasets for May through September to sum inter-decadal averages by number of days per month. No other formatting is performed by this tool.
-* *Input Decadal May Average Temperatures*: Define a set of mean decadal average temperature rasters for May.
-* *Input Decadal June Average Temperatures*: Define a set of mean decadal average temperature rasters for June.
-* *Input Decadal July Average Temperatures*: Define a set of mean decadal average temperature rasters for July.
-* *Input Decadal August Average Temperatures*: Define a set of mean decadal average temperature rasters for August.
-* *Input Decadal September Average Temperatures*: Define a set of mean decadal average temperature rasters for September.
-* *Work Folder*: Define a folder that can store intermediate files during the processing.
-* *Output Raster*: Define a raster that will store the summer warmth index output.
-
-### Predictor Variable Names
-The names of the predictor variables were shortened according to the scheme shown in the table below for simplicity during modeling:
-
+* *Decadal May Average Temperatures*: Input mean decadal average temperature rasters for May.
+* *Decadal June Average Temperatures*: Input mean decadal average temperature rasters for June.
+* *Decadal July Average Temperatures*: Input mean decadal average temperature rasters for July.
+* *Decadal August Average Temperatures*: Input mean decadal average temperature rasters for August.
+* *Decadal September Average Temperatures*: Input mean decadal average temperature rasters for September.
+* *Work Folder*: Folder that can store intermediate files during the processing.
+* *Output Raster*: Output raster of inter-decadal average summer warmth index.
 
 ### Processing Workflow
 This workflow assumes that the user has set up a copy of the Alaska VegPlots Database on a local MySQL server or an accessible MySQL server. For instructions related to the database, see the database repository at the link in the installation instructions above.
 1. Create Area of Interest
 2. Format Environmental Predictors
 3. Format Spectral Predictors
-4. Query Vegetation Plot Data by Species (Vegplots Database Tools)
-5. Vegetation Cover Sites (Vegplots Database Tools)
-6. Merge Presence - Absence Data
-7. Prepare Watershed Prediction Units
-8. Classify and Extract Input Data
-9. Train and test random forest model.
-10. Train and predict random forest model.
+4. Prepare Watershed Units
+5. Query Cover by Species (Vegplots Database Tools)
+6. Vegetation Cover Sites (Vegplots Database Tools)
+7. Format Training Data
+8. Create Modeling Partitions
+9. Train and Test Random Forest Classification and Regression
+10. Train and Predict Random Forest Classification and Regression
+11. Convert Predictions to Raster
 
 #### 1. Create Area of Interst:
 "Create Area of Interest" creates an area of interest raster from a polygon study area that is matched to the shared extent of the unformatted predictor rasters and a user-specified snap raster and cell size. This tool assumes that the polygon study area and the predictor rasters are in the same projection.
