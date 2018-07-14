@@ -1,110 +1,122 @@
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------------
-# Prepare Watershed Units
+# Create Modeling Partitions
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
-# Created on: 2018-06-28
+# Created on: 2018-07-13
 # Usage: Must be executed as an ArcPy Script.
-# Description: "Generate Model Data" exports csv tables of points for the training, test, complete, and prediction datasets. The points for the prediction units are gridded points based on the area of interest cell size and grid. All of the analyses variables are extracted to the table as columns.
+# Description: "Create Modeling Partitions" creates a feature class of mapping data using 1.5 times as many absence points, drawn randomly from both the trace cover values and true absences, as presence points. A training feature class is created by partitioning 70% of each strata from the modeling data. A test feature class is created by partitioning the remaining 30% of each strata from the modeling data.
 # ---------------------------------------------------------------------------
 
 # Import modules
 import arcpy
 import os
-from arcpy.sa import *
 
 # Set overwrite option
 arcpy.env.overwriteOutput = True
 
-# Define the input feature class containing cover values for a taxon
-cover_feature = arcpy.GetParameterAsText(0)
-
-# Define the set of all possible sites
-survey_sites = arcpy.GetParameterAsText(1)
-
-# Define area of interest raster to be used as snap raster
-snap_raster = arcpy.GetParameterAsText(2)
-
-# Define user-specified merge distance
-merge_distance = arcpy.GetParameterAsText(3)
+# Define the input feature class containing the formatted taxon data
+taxon_data = arcpy.GetParameterAsText(0)
 
 # Define the workspace geodatabase
-workspace_geodatabase = arcpy.GetParameterAsText(4)
+workspace_geodatabase = arcpy.GetParameterAsText(1)
 
-# Define output feature class for averaged cover values at user-specified range
-mean_cover_sites = arcpy.GetParameterAsText(5)
+# Define output feature class of mapping data
+mapping_classification = arcpy.GetParameterAsText(2)
 
-# Define output feature class for redundant sites removed from data selection
-removed_sites = arcpy.GetParameterAsText(6)
+# Define output feature class of training data
+training_classification = arcpy.GetParameterAsText(3)
+
+# Define output feature class of test data
+test_classification = arcpy.GetParameterAsText(4)
 
 # Define intermediate files
-absence_sites = os.path.join(workspace_geodatabase, "absence_sites")
-presence_sites = os.path.join(workspace_geodatabase, "presence_sites")
-merged_sites = os.path.join(workspace_geodatabase, "merged_sites")
-cover_raster = os.path.join(workspace_geodatabase, "cover")
-mean_cover = os.path.join(workspace_geodatabase, "mean_cover")
-mean_cover_joined = os.path.join(workspace_geodatabase, "mean_cover_joined")
-merged_sites_joined = os.path.join(workspace_geodatabase, "merged_sites_joined")
+all_absences = os.path.join(workspace_geodatabase, "all_absences")
+all_presences = os.path.join(workspace_geodatabase, "all_presences")
+absences_dissolve = os.path.join(workspace_geodatabase, "absences_dissolve")
+absences_random = os.path.join(workspace_geodatabase, "absences_random")
+absences_mapping = os.path.join(workspace_geodatabase, "absences_mapping")
+absences_test = os.path.join(workspace_geodatabase, "absences_test")
+absences_train = os.path.join(workspace_geodatabase, "absences_train")
 
-# Erase survey sites in which the target taxon was present
-arcpy.AddMessage("Formatting absence cover data...")
-arcpy.Erase_analysis(survey_sites, cover_feature, absence_sites, "")
-arcpy.AddXY_management(absence_sites)
+# Create a function to create a mapping, training, and test partition for each strata
+def partitionData (inLayer, sqlQuery, outTrain, outTest):
+    strataFeature = os.path.join(workspace_geodatabase, "strataFeature")
+    arcpy.SelectLayerByAttribute_management (inLayer, "NEW_SELECTION", sqlQuery)
+    arcpy.CopyFeatures_management(inLayer, strataFeature)
+    strataCount = int(arcpy.GetCount_management(strataFeature)[0])
+    randomCount = int(strataCount * .7)
+    strataDissolve = os.path.join(workspace_geodatabase, "strataDissolve")
+    strata70 = os.path.join(workspace_geodatabase, "strata70")
+    arcpy.Dissolve_management(strataFeature, strataDissolve, "", "", "MULTI_PART", "DISSOLVE_LINES")
+    arcpy.CreateRandomPoints_management(workspace_geodatabase, "strata70", strataDissolve, "0 0 250 250", randomCount, "0 Meters", "POINT", "0")
+    arcpy.MakeFeatureLayer_management(strataFeature, "strataLayer")
+    arcpy.SelectLayerByLocation_management("strataLayer", "INTERSECT", strata70, "", "NEW_SELECTION", "NOT_INVERT")
+    arcpy.CopyFeatures_management("strataLayer", outTrain)
+    arcpy.Erase_analysis(strataFeature, outTrain, outTest, "")
+    arcpy.Delete_management(strataFeature)
+    arcpy.Delete_management(strataDissolve)
+    arcpy.Delete_management(strata70)
 
-# Add a cover field to the absence sites with the cover value set to 0
-arcpy.AddField_management(absence_sites, "cover", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(absence_sites, "cover", 0, "PYTHON", "")
+# Segregrate a feature class of all presence sites
+arcpy.AddMessage("Segregating presence sites...")
+arcpy.MakeFeatureLayer_management(taxon_data, "taxon_data_layer")
+arcpy.SelectLayerByAttribute_management ("taxon_data_layer", "NEW_SELECTION", "presence = 1")
+arcpy.CopyFeatures_management("taxon_data_layer", all_presences)
 
-# Add a project field to the absence sites with the value set to initialProject
-arcpy.AddField_management(absence_sites, "project", "TEXT", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(absence_sites, "project", "!initialProject!", "PYTHON", "")
+# Determine number of presence records and calculate target number of absence records
+presenceCount = int(arcpy.GetCount_management(all_presences)[0])
+absenceCount = int(presenceCount * 1.5)
 
-# Create a copy of the cover feature class for attribute modification
-arcpy.CopyFeatures_management(cover_feature, presence_sites)
+# Segregate a feature class of all absence sites
+arcpy.AddMessage("Performing random selection of absence sites...")
+arcpy.SelectLayerByAttribute_management ("taxon_data_layer", "NEW_SELECTION", "presence = 0")
+arcpy.CopyFeatures_management("taxon_data_layer", all_absences)
 
-# Delete unmatched fields from presence and absence datasets
-arcpy.DeleteField_management(presence_sites, "ID;date;vegObserver1;vegObserver2;nameAccepted;tsnITIS")
-arcpy.DeleteField_management(absence_sites, "ID;initialProject;initialProjectTitle;plotDimensions;vascularScope;nonvascularScope;lichenScope")
+# Dissolve absences into a single multipart feature and randomly select number of absences based on calculated absence count
+arcpy.Dissolve_management(all_absences, absences_dissolve, "", "", "MULTI_PART", "DISSOLVE_LINES")
+arcpy.CreateRandomPoints_management(workspace_geodatabase, "absences_random", absences_dissolve, "0 0 250 250", absenceCount, "1000 Meters", "POINT", "0")
+arcpy.MakeFeatureLayer_management(all_absences, "absenceLayer")
+arcpy.SelectLayerByLocation_management("absenceLayer", "INTERSECT", absences_random, "", "NEW_SELECTION", "NOT_INVERT")
+arcpy.CopyFeatures_management("absenceLayer", absences_mapping)
 
-# Merge the presence and the absence sites
-arcpy.AddMessage("Merging presence and absence cover data...")
-arcpy.Merge_management([presence_sites, absence_sites], merged_sites)
-arcpy.AddField_management(merged_sites, "originalID", "LONG", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(merged_sites, "originalID", "!OBJECTID!", "PYTHON", "")
+# Partition the randomly selected absence data using the partition function
+arcpy.AddMessage("Partitioning randomly selected absence sites...")
+arcpy.MakeFeatureLayer_management(absences_mapping, "absences_mapping_layer")
+absenceQuery = "presence = 0"
+partitionData("absences_mapping_layer", absenceQuery, absences_train, absences_test)
 
-# Convert input cover values to raster using mean rule to average cover values for points within the merge distance
-arcpy.AddMessage("Finding mean value of survey sites that overlap common grid cell...")
-arcpy.env.snapRaster = snap_raster
-arcpy.PointToRaster_conversion(merged_sites, "cover", cover_raster, "MEAN", "NONE", merge_distance)
+# Create lists for mapping, training, and test sets
+mapping_list = [absences_mapping, all_presences]
+train_list = [absences_train, ]
+test_list = [absences_test, ]
 
-# Remove the cover value from the merged sites feature class
-arcpy.DeleteField_management(merged_sites, "cover")
+# Iterate through all presence strata to partition the data into mapping, training, and test sets
+arcpy.AddMessage("Partitioning presence sites by strata...")
+arcpy.MakeFeatureLayer_management(all_presences, "presences_layer")
+i = 1
+while i < 5:
+    filename = "strata_" + str(i)
+    strataTrain = os.path.join(workspace_geodatabase, filename + "_train")
+    strataTest = os.path.join(workspace_geodatabase, filename + "_test")
+    queryStrata = "strata = " + str(i)
+    partitionData("presences_layer", queryStrata, strataTrain, strataTest)
+    train_list.append(strataTrain)
+    test_list.append(strataTest)
+    i = i + 1
 
-# Convert the mean cover value raster to point
-arcpy.RasterToPoint_conversion(cover_raster, mean_cover, "Value")
-
-# Use a spatial join to add the mean cover value to the nearest point from the merged sites feature class and remove points that were not nearest to a mean cover point
-arcpy.AddMessage("Pushing mean values to output and removing redundant sites...")
-arcpy.SpatialJoin_analysis(mean_cover, merged_sites, mean_cover_joined, "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", "", "")
-arcpy.SpatialJoin_analysis(merged_sites, mean_cover_joined, merged_sites_joined, "JOIN_ONE_TO_ONE", "KEEP_ALL", "", "CLOSEST", "", "")
-arcpy.MakeFeatureLayer_management(merged_sites_joined, "merged_sites_joined_layer")
-arcpy.SelectLayerByAttribute_management("merged_sites_joined_layer", "NEW_SELECTION", "OBJECTID = OriginalID_1")
-arcpy.CopyFeatures_management("merged_sites_joined_layer", mean_cover_sites)
-arcpy.AddField_management(mean_cover_sites, "cover", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(mean_cover_sites, "cover", "!grid_code!", "PYTHON", "")
-arcpy.DeleteField_management(mean_cover_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1")
-
-# Export the redundant points that were removed from the available data
-arcpy.SelectLayerByAttribute_management("merged_sites_joined_layer", "NEW_SELECTION", "OBJECTID <> OriginalID_1")
-arcpy.CopyFeatures_management("merged_sites_joined_layer", removed_sites)
-arcpy.AddField_management(removed_sites, "cover", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(removed_sites, "cover", "!grid_code!", "PYTHON", "")
-arcpy.DeleteField_management(removed_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1")
+# Merge mapping, training, and test partition datasets
+arcpy.AddMessage("Merging mapping, training, and test partition datasets...")
+arcpy.Merge_management(mapping_list, mapping_data)
+arcpy.Merge_management(train_list, training_data)
+arcpy.Merge_management(test_list, test_data)
 
 # Delete intermediate files
-arcpy.Delete_management(absence_sites)
-arcpy.Delete_management(presence_sites)
-arcpy.Delete_management(merged_sites)
-arcpy.Delete_management(cover_raster)
-arcpy.Delete_management(mean_cover)
-arcpy.Delete_management(mean_cover_joined)
-arcpy.Delete_management(merged_sites_joined)
+arcpy.Delete_management(all_absences)
+arcpy.Delete_management(absences_dissolve)
+arcpy.Delete_management(absences_random)
+for feature in mapping_list:
+    arcpy.Delete_management(feature)
+for feature in train_list:
+    arcpy.Delete_management(feature)
+for feature in test_list:
+    arcpy.Delete_management(feature)
