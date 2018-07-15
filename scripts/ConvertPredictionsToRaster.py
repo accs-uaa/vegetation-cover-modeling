@@ -21,38 +21,33 @@ input_tables = arcpy.GetParameterAsText(0)
 # Define the area of interest raster
 area_of_interest = arcpy.GetParameterAsText(1)
 
-
-
 # Define the workspace geodatabase
-workspace_geodatabase = arcpy.GetParameterAsText(4)
+workspace_geodatabase = arcpy.GetParameterAsText(2)
 
 # Define output folder
-output_folder = arcpy.GetParameterAsText(5)
+output_folder = arcpy.GetParameterAsText(3)
 
-# Define intermediate files
-absence_sites = os.path.join(workspace_geodatabase, "absence_sites")
+# Split input tables string into a list
+input_tables = input_tables.split(";")
+
+# Determine spatial reference from area of interest
+spatial_reference = arcpy.Describe(area_of_interest).spatialReference
+
+# Set snap raster environment and determine cell size relative to area of interest
+arcpy.env.snapRaster = area_of_interest
+cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 
 # Create a function to convert the tabular data to raster
+def csvToRaster(inCSV, spatial_reference, cell_size, outRaster):
+    inLayer = "prediction_layer"
+    predict_feature = os.path.join(workspace_geodatabase, "predict_feature")
+    arcpy.MakeXYEventLayer_management(inCSV, "POINT_X", "POINT_Y", inLayer, spatial_reference, "")
+    arcpy.CopyFeatures_management(inLayer, predict_feature, "", "0", "0", "0")
+    arcpy.PointToRaster_conversion(predict_feature, "classification", outRaster, "MAXIMUM", "NONE", cell_size)
+    arcpy.Delete_management(predict_feature)
 
-Raster function in R?
-
-
-
-
-# Set intermediate variables
-watershed_csv = "K:\\VegetationEcology\\NorthSlopeDataHarmonization\\TestData\\watershed.csv"
-watershed_Layer = "watershed_Layer"
-watershed_points_predicted = "K:\\VegetationEcology\\NorthSlopeDataHarmonization\\Project_GIS\\DataHarmonization_GIS.gdb\\watershed_points_predicted"
-watershed_raster_predicted = "K:\\VegetationEcology\\NorthSlopeDataHarmonization\\Project_GIS\\DataHarmonization_GIS.gdb\\watershed_raster_predicted"
-
-# Process: Make XY Event Layer
-arcpy.MakeXYEventLayer_management(watershed_csv, "Field27", "Field28", watershed_Layer, "PROJCS['NAD_1983_Alaska_Albers',GEOGCS['GCS_North_American_1983',DATUM['D_North_American_1983',SPHEROID['GRS_1980',6378137.0,298.257222101]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433]],PROJECTION['Albers'],PARAMETER['False_Easting',0.0],PARAMETER['False_Northing',0.0],PARAMETER['Central_Meridian',-154.0],PARAMETER['Standard_Parallel_1',55.0],PARAMETER['Standard_Parallel_2',65.0],PARAMETER['Latitude_Of_Origin',50.0],UNIT['Meter',1.0]];-13752200 -8948200 10000;-100000 10000;-100000 10000;0.001;0.001;0.001;IsHighPrecision", "")
-
-# Process: Copy Features
-arcpy.CopyFeatures_management(watershed_Layer, watershed_points_predicted, "", "0", "0", "0")
-
-# Process: Point to Raster
-tempEnvironment0 = arcpy.env.snapRaster
-arcpy.env.snapRaster = "K:\\VegetationEcology\\NorthSlopeDataHarmonization\\Project_GIS\\DataHarmonization_GIS.gdb\\Watershed_Test_Raster"
-arcpy.PointToRaster_conversion(watershed_points_predicted, "Field29", watershed_raster_predicted, "MOST_FREQUENT", "NONE", "60")
-arcpy.env.snapRaster = tempEnvironment0
+# Run the csv to raster function for all input csv files
+for csv in input_tables:
+   filename = os.path.split(os.path.splitext(csv)[0])[1]
+   output_raster = os.path.join(output_folder, filename + ".tif")
+   csvToRaster(csv, spatial_reference, cell_size, output_raster)

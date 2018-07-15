@@ -16,7 +16,7 @@ from arcpy.sa import *
 arcpy.env.overwriteOutput = True
 
 # Define the input watershed feature class from the Watershed Boundary Dataset
-watersheds = arcpy.GetParameterAsText(0)
+watersheds =  arcpy.GetParameterAsText(0)
 
 # Define the area of interest raster
 area_of_interest = arcpy.GetParameterAsText(1)
@@ -27,33 +27,37 @@ predict_area = arcpy.GetParameterAsText(2)
 # Define input rasters
 input_rasters = arcpy.GetParameterAsText(3)
 
-# Define user-specified merge distance
-merge_distance = arcpy.GetParameterAsText(3)
-
 # Define the workspace folder
-work_folder = arcpy.GetParameterAsText(4)
+workspace_folder = arcpy.GetParameterAsText(4)
+
+# Define workspace geodatabase
+workspace_geodatabase = arcpy.GetParameterAsText(5)
 
 # Define empty geodatabase to store output watershed point features
-output_geodatabase = arcpy.GetParameterAsText(5)
+output_geodatabase = arcpy.GetParameterAsText(6)
 
 # Split input rasters string into a list
 input_rasters = input_rasters.split(";")
 
 # Define intermediate files
-predict_raster = os.path.join(work_folder, "predict_raster.tif")
-predict_feature = os.path.join(output_geodatabase, "predict_feature")
-watersheds_clip = os.path.join(output_geodatabase, "watersheds_clip")
-tempRaster = os.path.join(work_folder, "temp_gridpoints.tif")
+predict_raster = os.path.join(workspace_folder, "predict_raster.tif")
+predict_feature = os.path.join(workspace_geodatabase, "predict_feature")
+watersheds_clip = os.path.join(workspace_geodatabase, "watersheds_clip")
+tempRaster = os.path.join(workspace_folder, "temp_gridpoints.tif")
 
 # Create a function to create point grids from polygon features
-def buildPointGrids(inFeature)
+def buildPointGrids(inFeature):
     # Convert from polygon to raster and raster to point to create point grid
+    arcpy.AddMessage("Building watershed point grid...")
     arcpy.PolygonToRaster_conversion(inFeature, "OBJECTID", tempRaster, "CELL_CENTER", "NONE", cell_size)
     # Delete input feature so that it can be replaced with point grid
     arcpy.Delete_management(inFeature)
     arcpy.RasterToPoint_conversion(tempRaster, inFeature, "VALUE")
+    # Add XY Coordinates to feature class in the NAD_1983_Alaska_Albers projection
+    arcpy.AddXY_management(inFeature)
     # Extract values of predictor variables to point grid
-    ExtractMultiValuesToPoints(outFeature, input_rasters, "NONE")
+    arcpy.AddMessage("Extracting predictor variables to point grid...")
+    ExtractMultiValuesToPoints(inFeature, input_rasters, "NONE")
     # Delete intermediate files
     arcpy.Delete_management(tempRaster)
 
@@ -79,9 +83,10 @@ arcpy.SplitByAttributes_analysis(watersheds_clip, output_geodatabase, ['HUC10'])
 arcpy.env.workspace = output_geodatabase
 featureClasses = arcpy.ListFeatureClasses()
 
-# Loop through feature classes and convert them to rasters with the same cell size and grid as the area of interest
+# Loop through feature classes and convert them to point grids with the same cell size and grid as the area of interest and the user input set of predictor variables
 cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 for feature in featureClasses:
+    feature = os.path.join(output_geodatabase, feature)
     buildPointGrids(feature)
 
 # Delete intermediate files
