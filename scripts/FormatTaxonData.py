@@ -66,17 +66,9 @@ arcpy.CalculateField_management(absence_sites, "cover", 0, "PYTHON", "")
 arcpy.AddField_management(absence_sites, "project", "TEXT", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(absence_sites, "project", "!initialProject!", "PYTHON", "")
 
-# Add a regression field to the absence sites with value set to 0
-arcpy.AddField_management(absence_sites, "regression", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(absence_sites, "regression", 0, "PYTHON", "")
-
 # Clip the cover feature to the area of interest
 arcpy.AddMessage("Formatting presence cover data...")
 arcpy.Clip_analysis(cover_feature, aoi_poly, presence_sites, "")
-
-# Add a regression field to the presence sites with value set to 1
-arcpy.AddField_management(presence_sites, "regression", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-arcpy.CalculateField_management(presence_sites, "regression", 1, "PYTHON", "")
 
 # Delete unmatched fields from presence and absence datasets
 arcpy.DeleteField_management(presence_sites, "abundanceID;date;vegObserver1;vegObserver2;nameAccepted;tsnITIS")
@@ -111,7 +103,7 @@ arcpy.SelectLayerByAttribute_management("merged_sites_joined_layer", "NEW_SELECT
 arcpy.CopyFeatures_management("merged_sites_joined_layer", mean_cover_sites)
 arcpy.AddField_management(mean_cover_sites, "cover", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(mean_cover_sites, "cover", "!grid_code!", "PYTHON", "")
-arcpy.DeleteField_management(mean_cover_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1;siteID_1;vascularScope_1;nonvascularScope_1;lichenScope_1;regression_1")
+arcpy.DeleteField_management(mean_cover_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1;siteID_1;vascularScope_1;nonvascularScope_1;lichenScope_1;regression_1;date_1")
 
 # Add a stratification field to the mean cover data and define strata based on cover values
 arcpy.AddField_management(mean_cover_sites, "strata", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
@@ -123,21 +115,39 @@ stratifyCodeblock = """def stratifyCover(cover):
         return 1
     elif 10 < cover <= 25:
         return 2
-    elif 25 < cover <= 50:
-        return 3
-    elif cover > 50:
-        return 4"""
-arcpy.CalculateField_management(mean_cover_sites, "strata", stratifyExpression, "PYTHON", stratifyCodeblock)
+    elif cover > 25:
+        return 3"""
+arcpy.CalculateField_management(mean_cover_sites, "strata", stratifyExpression, "PYTHON3", stratifyCodeblock)
 
-# Add a presence field to the mean cover data and define presence based on cover values
-arcpy.AddField_management(mean_cover_sites, "presence", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
-presenceExpression = "presenceCover(!cover!)"
-presenceCodeblock = """def presenceCover(cover):
+# Add a field that distinguishes cover values greater than 0%
+arcpy.AddField_management(mean_cover_sites, "zero", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
+zeroExpression = "zeroCover(!cover!)"
+zeroCodeblock = """def zeroCover(cover):
     if cover == 0:
         return 0
     elif cover > 0:
         return 1"""
-arcpy.CalculateField_management(mean_cover_sites, "presence", presenceExpression, "PYTHON", presenceCodeblock)
+arcpy.CalculateField_management(mean_cover_sites, "zero", zeroExpression, "PYTHON3", zeroCodeblock)
+
+# Add a field that distinguishes cover values greater than 10%
+arcpy.AddField_management(mean_cover_sites, "ten", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
+tenExpression = "tenCover(!cover!)"
+tenCodeblock = """def tenCover(cover):
+    if cover <= 10:
+        return 0
+    elif cover > 10:
+        return 1"""
+arcpy.CalculateField_management(mean_cover_sites, "ten", tenExpression, "PYTHON3", tenCodeblock)
+
+# Add a field that distinguishes cover values greater than 25%
+arcpy.AddField_management(mean_cover_sites, "twentyfive", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
+twentyfiveExpression = "twentyfiveCover(!cover!)"
+twentyfiveCodeblock = """def twentyfiveCover(cover):
+    if cover <= 25:
+        return 0
+    elif cover > 25:
+        return 1"""
+arcpy.CalculateField_management(mean_cover_sites, "twentyfive", twentyfiveExpression, "PYTHON3", twentyfiveCodeblock)
 
 # Extract predictor rasters to mean cover points
 arcpy.AddMessage("Extracting predictor raster values...")
