@@ -41,8 +41,10 @@ cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 def csvToRaster(inCSV, spatial_reference, cell_size, outRaster):
     inLayer = "prediction_layer"
     predict_feature = os.path.join(workspace_geodatabase, "predict_feature")
+    arcpy.AddMessage("Creating spatial layer from csv...")
     arcpy.MakeXYEventLayer_management(inCSV, "POINT_X", "POINT_Y", inLayer, spatial_reference, "")
     arcpy.CopyFeatures_management(inLayer, predict_feature, "", "0", "0", "0")
+    arcpy.AddMessage("Converting spatial layer to raster...")
     arcpy.PointToRaster_conversion(predict_feature, "classification", outRaster, "MAXIMUM", "NONE", cell_size)
     arcpy.Delete_management(predict_feature)
 

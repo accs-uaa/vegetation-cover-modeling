@@ -1,0 +1,34 @@
+# Configure the gcloud command-line tool to use the specified project.
+
+gcloud config set project classified-cover-arctic
+
+# Verify that Google Cloud SDK components are installed
+
+gcloud ml-engine models list
+
+# Update gcloud components
+
+gcloud components update
+
+# Install scikit-learn, xgboost (and scipy dependency), and pandas
+
+pip install --user scikit-learn
+pip install --user xgboost
+pip install --user pandas
+
+# Set up a storage bucket associated with the project based on the project name with mlengine appended
+
+PROJECT_ID=$(gcloud config list project --format "value(core.project)")
+BUCKET_NAME=${PROJECT_ID}-mlengine
+
+# Check the storage bucket
+
+echo $BUCKET_NAME
+
+# Select a zone for the storage bucket
+
+REGION=us-west1
+
+# Create the storage bucket
+
+gsutil mb -l $REGION gs://$BUCKET_NAME

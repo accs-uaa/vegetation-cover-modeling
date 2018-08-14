@@ -53,7 +53,7 @@ test_list = []
 arcpy.MakeFeatureLayer_management(taxon_data, "taxon_data_layer")
 i = 0
 while i < 4:
-    arcpy.AddMessage("Partitioning sites by strata (part " + str(i + 1) + " out of 5)...")
+    arcpy.AddMessage("Partitioning sites by strata (part " + str(i + 1) + " out of 4)...")
     filename = "strata_" + str(i)
     strataTrain = os.path.join(workspace_geodatabase, filename + "_train")
     strataTest = os.path.join(workspace_geodatabase, filename + "_test")

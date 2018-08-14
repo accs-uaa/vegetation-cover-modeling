@@ -17,9 +17,6 @@ import seaborn as sns
 import matplotlib.pyplot as plot
 import xlsxwriter
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve
@@ -60,7 +57,7 @@ output_name = arcpy.GetParameterAsText(7)
 predictor_variables = ['compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'aspect', 'l8_evi2', 'l8_green', 'l8_nbr', 'l8_ndmi', 'l8_ndsi', 'l8_ndvi', 'l8_ndwi', 'l8_nearInfrared', 'l8_red', 'l8_shortInfrared1', 'l8_shortInfrared2', 'l8_ultrablue', 'l8_blue']
 
 # Define intermediate variables
-retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover', 'strata']
+retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover']
 coordinates = ['POINT_X', 'POINT_Y']
 all_variables = predictor_variables + zero_variable + ten_variable + twentyfive_variable + retain_variables + coordinates
 
@@ -154,7 +151,7 @@ def thresholdMetrics(inIndex, inProbability, inValue, y_test):
 def trainTestModel(x_train, y_train, x_test, y_test, testData, variable, outROCFile, outVariableFile):
     # Fit a random forest classifier to the training dataset
     arcpy.AddMessage("Fitting random forest classifier...")
-    rf_classify = RandomForestClassifier(n_estimators = 1000, bootstrap = True, oob_score = True, class_weight = "balanced")
+    rf_classify = RandomForestClassifier(n_estimators = 5000, oob_score = True, class_weight = "balanced")
     rf_classify.fit(x_train, y_train)
     # Use the random forest classifier to predict probabilities for the test dataset
     arcpy.AddMessage("Predicting test dataset using fitted classifier...")
@@ -187,7 +184,7 @@ def trainTestModel(x_train, y_train, x_test, y_test, testData, variable, outROCF
     plotCurveROC(y_test, test_probability, outROCFile)
     # Export a variable importance plot
     plotVariableImportances(rf_classify, x_train, outVariableFile)
-    return [threshold, sensitivity_test, specificity_test, auc_test, accuracy_test,  rf_classify.oob_score_, testData]
+    return [threshold, sensitivity_test, specificity_test, auc_test, accuracy_test, rf_classify.oob_score_, testData]
 
 # Define a function to output threshold to text file
 def thresholdOut(inThreshold, outThresholdFile):
@@ -240,7 +237,6 @@ threshold_0, sensitivity_0, specificity_0, auc_0, accuracy_0, oob_score_0, test_
 
 # Train and test a random forest classifier to distinguish cover values greater than 10%
 arcpy.AddMessage("Training and testing the 10 Classifier...")
-train_df = train_df[train_df['strata'] >= 1]
 rocFile_10 = os.path.join(plots_folder, "roc_10.png")
 variableFile_10 = os.path.join(plots_folder, "variableImportance_10.png")
 threshold_10, sensitivity_10, specificity_10, auc_10, accuracy_10, oob_score_10, test_df = trainTestModel(train_df[predictor_variables], train_df[ten_variable[0]], test_df[predictor_variables], test_df[ten_variable[0]], test_df, "predict_10", rocFile_10, variableFile_10)
