@@ -18,11 +18,14 @@ arcpy.env.overwriteOutput = True
 # Define input imagery tiles
 input_tiles = arcpy.GetParameterAsText(0)
 
+# Define the area of interest raster
+area_of_interest = arcpy.GetParameterAsText(1)
+
 # Define workspace folder
-work_folder = arcpy.GetParameterAsText(1)
+work_folder = arcpy.GetParameterAsText(2)
 
 # Define the output raster
-output_raster = arcpy.GetParameterAsText(2)
+output_raster = arcpy.GetParameterAsText(3)
 
 # Split input rasters string into a list
 input_tiles = input_tiles.split(";")
@@ -53,12 +56,24 @@ cellOriginal = arcpy.GetRasterProperties_management(input_tiles[0], "CELLSIZEX")
 mosaicRaster = os.path.join(work_folder, "mosaicRaster.tif")
 arcpy.MosaicToNewRaster_management(output_tiles, work_folder, "mosaicRaster.tif", projectionOriginal, "32_BIT_SIGNED", cellOriginal, "1", "MEAN", "FIRST")
 	
-# Remove and replace no data values within raster with 5 cell grid average
-arcpy.AddMessage("Interpolating missing data...")
-filled_raster = CON(isnull(mosaicRaster), FOCALMEAN(mosaicRaster, rectangle,5,5), mosaicRaster)
-arcpy.CopyRaster_management(filled_raster, output_raster, "", "", "-2147483648", "NONE", "NONE", "32_BIT_SIGNED", "NONE", "NONE", "TIFF", "NONE")
+# Reproject the mosaicked raster to match the area of interest
+arcpy.AddMessage("Reprojecting and resampling output to match area of interest...")
+arcpy.env.snapRaster = area_of_interest
+projectionFinal = arcpy.Describe(area_of_interest).spatialReference
+projectRaster = os.path.join(work_folder, "projectRaster.tif")
+cellFinalX = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
+cellFinalY = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEY")
+cellFinal = str(cellFinalX) + " " + str(cellFinalY)
+arcpy.ProjectRaster_management(mosaicRaster, projectRaster, projectionFinal, "BILINEAR", cellFinal, "WGS_1984_(ITRF00)_To_NAD_1983", "", projectionOriginal)
+
+# Extract projected raster to area of interest
+arcpy.AddMessage("Extracting output to area of interest...")
+arcpy.env.cellSize = area_of_interest
+outExtract = ExtractByMask(projectRaster, area_of_interest)
+arcpy.CopyRaster_management(outExtract, output_raster, "", "", "-2147483648", "NONE", "NONE", "32_BIT_SIGNED", "NONE", "NONE", "TIFF", "NONE")
 
 # Delete intermediate files
 for output_tile in output_tiles:
     arcpy.Delete_management(output_tile)
 arcpy.Delete_management(mosaicRaster)
+arcpy.Delete_management(projectRaster)

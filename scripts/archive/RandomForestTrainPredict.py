@@ -47,7 +47,7 @@ predictor_variables = ['compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000
 
 # Define intermediate variables
 coordinates = ['POINT_X', 'POINT_Y']
-all_variables = predictor_variables + zero_variable + ten_variable + twentyfive_variable + coordinates
+all_variables = predictor_variables + zero_variable + ten_variable + twentyfive_variable + coordinates + ['strata']
 output_variables = coordinates + ['predict_0', 'predict_10', 'predict_25', 'classification']
 
 # Split input predict datasets string into a list
@@ -55,6 +55,7 @@ predict_datasets = predict_datasets.split(";")
 
 # Define a function to read threshold values from text file
 def readThreshold(inFile):
+   arcpy.AddMessage("Reading threshold file...")
    threshold_reader = open(inFile, "r")
    threshold = threshold_reader.readlines()
    threshold_reader.close()
@@ -63,6 +64,7 @@ def readThreshold(inFile):
 
 # Define a function to convert feature class to data frame
 def convertFeature(inData):
+    arcpy.AddMessage("Converting feature class to data frame...")
     inArray = da.FeatureClassToNumPyArray(inData, ["SHAPE@XY"] + predictor_variables + coordinates)
     outDataframe = pd.DataFrame(inArray, columns = predictor_variables + coordinates)
     return outDataframe
@@ -70,6 +72,7 @@ def convertFeature(inData):
 # Define a function to fit a random forest classifier using training data
 def trainModel(x_train, y_train):
     # Fit a random forest classifier to the training dataset
+    arcpy.AddMessage("Fitting random forest classifier...")
     rf_classify = RandomForestClassifier(n_estimators = 5000, oob_score = True, class_weight = "balanced")
     rf_classify.fit(x_train, y_train)
     return rf_classify
@@ -101,15 +104,20 @@ def compositeModel(inModel_0, inModel_10, inModel_25, inThreshold_0, inThreshold
     # Convert the input data to a data frame
     predict_df = convertFeature(inData)
     # Use the 0 classifier to make binary prediction and append results to predict dataframe
+    arcpy.AddMessage("Predicting 0 classifier...")
     predict_df = predictModel(inModel_0, inThreshold_0, predict_df, "predict_0")
     # Use the 10 classifier to make binary prediction and append results to predict dataframe
+    arcpy.AddMessage("Predicting 10 classifier...")
     predict_df = predictModel(inModel_10, inThreshold_10, predict_df, "predict_10")
     # Use the 25 classifier to make binary prediction and append results to predict dataframe
+    arcpy.AddMessage("Predicting 25 classifier...")
     predict_df = predictModel(inModel_25, inThreshold_25, predict_df, "predict_25")
     # Apply composite classification function to the predictions in the test dataframe
+    arcpy.AddMessage("Creating composite classification...")
     predict_df['classification'] = predict_df.apply(lambda row: compositeClassification(row), axis=1)
     output_df = predict_df[output_variables]
     # Export the output dataframe to the output csv
+    arcpy.AddMessage("Exporting to csv...")
     output_df.to_csv(outCSV, header=True, index=False, sep=',', encoding='utf-8')
 
 # Read thresholds from text files in the workspace folder and store as variables
@@ -126,6 +134,7 @@ train_df = pd.DataFrame(train_array, columns = all_variables)
 
 # Create a random forest model for the 0, 10, and 25 classifier
 classify_0 = trainModel(train_df[predictor_variables], train_df[zero_variable[0]])
+train_df = train_df[train_df['strata'] >= 1]
 classify_10 = trainModel(train_df[predictor_variables], train_df[ten_variable[0]])
 classify_25 = trainModel(train_df[predictor_variables], train_df[twentyfive_variable[0]])
 

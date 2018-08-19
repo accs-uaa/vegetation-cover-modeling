@@ -8,11 +8,8 @@
 # ---------------------------------------------------------------------------
 
 # Import modules
-import os
 import arcpy
-import arcpy.da as da
-import numpy as np
-import pandas as pd
+import os
 from arcpy.sa import *
 
 # Set overwrite option
@@ -39,9 +36,6 @@ workspace_geodatabase = arcpy.GetParameterAsText(5)
 # Define empty geodatabase to store output watershed point features
 output_geodatabase = arcpy.GetParameterAsText(6)
 
-# Define empty folder to store output watershed point csv files
-output_folder = arcpy.GetParameterAsText(7)
-
 # Split input rasters string into a list
 input_rasters = input_rasters.split(";")
 
@@ -66,13 +60,6 @@ def buildPointGrids(inFeature):
     ExtractMultiValuesToPoints(inFeature, input_rasters, "NONE")
     # Delete intermediate files
     arcpy.Delete_management(tempRaster)
-
-# Create a function to convert a feature class to csv
-def featureToCSV(inFeature, inColumns, outCSV):
-    arcpy.AddMessage("Converting feature class to csv...")
-    feature_array = da.FeatureClassToNumPyArray(inFeature, ["SHAPE@XY"] + inColumns)
-    feature_df = pd.DataFrame(feature_array, columns = inColumns)
-    feature_df.to_csv(outCSV, header=True, index=False, sep=',', encoding='utf-8')
 
 # Set the snap raster and cell size environments
 arcpy.env.snapRaster = area_of_interest
@@ -100,12 +87,7 @@ featureClasses = arcpy.ListFeatureClasses()
 cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 for feature in featureClasses:
     feature = os.path.join(output_geodatabase, feature)
-    output_csv = os.path.join(output_folder, feature + ".csv")
     buildPointGrids(feature)
-    predictor_variables = ['compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'aspect', 'l8_evi2', 'l8_green', 'l8_nbr', 'l8_ndmi', 'l8_ndsi', 'l8_ndvi', 'l8_ndwi', 'l8_nearInfrared', 'l8_red', 'l8_shortInfrared1', 'l8_shortInfrared2', 'l8_ultrablue', 'l8_blue']
-    coordinates = ['POINT_X', 'POINT_Y']
-    all_variables = predictor_variables + coordinates
-    featureToCSV(feature, all_variables, output_csv)
 
 # Delete intermediate files
 arcpy.Delete_management(predict_raster)

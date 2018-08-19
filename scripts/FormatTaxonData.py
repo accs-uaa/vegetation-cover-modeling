@@ -8,8 +8,11 @@
 # ---------------------------------------------------------------------------
 
 # Import modules
-import arcpy
 import os
+import arcpy
+import arcpy.da as da
+import numpy as np
+import pandas as pd
 from arcpy.sa import *
 
 # Set overwrite option
@@ -36,6 +39,9 @@ workspace_geodatabase = arcpy.GetParameterAsText(5)
 # Define output feature class for averaged cover values at user-specified range
 mean_cover_sites = arcpy.GetParameterAsText(6)
 
+# Define output csv
+output_csv = arcpy.GetParameterAsText(7)
+
 # Split predictor rasters string into a list
 predictor_rasters = predictor_rasters.split(";")
 
@@ -49,6 +55,13 @@ cover_raster = os.path.join(workspace_geodatabase, "cover")
 mean_cover = os.path.join(workspace_geodatabase, "mean_cover")
 mean_cover_joined = os.path.join(workspace_geodatabase, "mean_cover_joined")
 merged_sites_joined = os.path.join(workspace_geodatabase, "merged_sites_joined")
+
+# Create a function to convert a feature class to csv
+def featureToCSV(inFeature, inColumns, outCSV):
+    arcpy.AddMessage("Converting feature class to csv...")
+    feature_array = da.FeatureClassToNumPyArray(inFeature, ["SHAPE@XY"] + inColumns)
+    feature_df = pd.DataFrame(feature_array, columns = inColumns)
+    feature_df.to_csv(outCSV, header=True, index=False, sep=',', encoding='utf-8')
 
 # Convert area of interest to polygon without simplifying
 arcpy.AddMessage("Formatting absence cover data...")
@@ -152,6 +165,13 @@ arcpy.CalculateField_management(mean_cover_sites, "twentyfive", twentyfiveExpres
 # Extract predictor rasters to mean cover points
 arcpy.AddMessage("Extracting predictor raster values...")
 ExtractMultiValuesToPoints(mean_cover_sites, predictor_rasters, "NONE")
+
+# Convert feature class to numpy array and dataframe and export as csv
+predictor_variables = ['compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'aspect', 'l8_evi2', 'l8_green', 'l8_nbr', 'l8_ndmi', 'l8_ndsi', 'l8_ndvi', 'l8_ndwi', 'l8_nearInfrared', 'l8_red', 'l8_shortInfrared1', 'l8_shortInfrared2', 'l8_ultrablue', 'l8_blue']
+retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover', 'strata', 'zero', 'ten', 'twentyfive']
+coordinates = ['POINT_X', 'POINT_Y']
+all_variables = retain_variables + coordinates + predictor_variables
+featureToCSV(mean_cover_sites, all_variables, output_csv)
 
 # Delete intermediate files
 arcpy.Delete_management(aoi_poly)
