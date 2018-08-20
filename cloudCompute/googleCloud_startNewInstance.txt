@@ -1,11 +1,11 @@
 # Use the Google Cloud Compute interface to create a new instance with the following features:
-Name: instance-#
+Name: <taxon>
 Region: us-west1 (Oregon)
 Zone: us-west1-b
-Machine Type: 2 vCPUs (7.5 GB memory) #scale up as needed
+Machine Type: 64 vCPUs (57.6 GB memory)
 Boot Disk: Ubuntu 18.04 LTS
 Boot Disk Type: Standard Persistent Disk
-Size (GB): 10 # scale up as needed
+Size (GB): 100
 Service Account: Compute Engine default service account
 Access scopes: Allow full access to all Cloud APIs
 Firewall: Allow HTTP Traffic, Allow HTTPS traffic
@@ -53,25 +53,11 @@ wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
 bash Anaconda3-5.2.0-Linux-x86_64.sh
 
 # At the option to prepend the Anaconda3 install location to PATH in your /home... enter yes.
+# At the option to install Microsoft VSCode enter no.
 
 # Remove the installation file and start bashrc
 rm Anaconda3-5.2.0-Linux-x86_64.sh
 source ~/.bashrc
-
-# Download the Google Storage bucket contents to the virtual machine
-cd ~
-mkdir models
-mkdir data
-mkdir notebooks
-mkdir <predictions_folder>
-gsutil cp -r gs://accs-machine-learning-bucket/models/* ~/models/
-gsutil cp -r gs://accs-machine-learning-bucket/data/* ~/data/
-gsutil cp -r gs://accs-machine-learning-bucket/notebooks/* ~/notebooks/
-
-# Download all data to data folder
-cd ~
-mkdir data
-gsutil cp -r gs://accs-machine-learning-bucket/data/ home/twnawrocki/data
 
 # Create a config file for jupyter-rule
 jupyter notebook --generate-config
@@ -82,11 +68,11 @@ jupyter notebook password
 # Add a certificate to allow access to notebook via https
 mkdir certs
 cd ~/certs/
-sudo openssl req -x509 nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mykey.key -out mycert.pem
 
 # Use vi to edit the jupyter notebook configuration file to allow access from all IP addresses
 cd ~/.jupyter/
-vi .jupyter/jupyter_notebook_config.py
+vi jupyter_notebook_config.py
 
 # To insert in vi, enter "i" and add to the top of the document:
 ________________________________________________________________
@@ -97,6 +83,7 @@ c = get_config()
 c.IPKernelApp.pylab = 'inline'
 # Location of certificate file
 c.NotebookApp.certfile = u'/home/twnawrocki/certs/mycert.pem'
+c.NotebookApp.keyfile = u'/home/twnawrocki/certs/mykey.key'
 # Allow access from any IP address
 c.NotebookApp.ip = '*'
 # Do not open browser by default
@@ -107,6 +94,19 @@ c.NotebookApp.port = 8888
 _________________________________________________________________
 
 # To save and exit vi enter ESC the ":wq"
+
+# Download the Google Storage bucket contents to the virtual machine
+cd ~
+mkdir watershedData
+mkdir speciesData
+mkdir notebooks
+mkdir <output_taxon>
+mkdir <prediction_taxon>
+gsutil cp -r gs://accs-machine-learning-bucket/watershedData/* ~/watershedData/
+gsutil cp -r gs://accs-machine-learning-bucket/speciesData/* ~/speciesData/
+gsutil cp -r gs://accs-machine-learning-bucket/notebooks/* ~/notebooks/
+gsutil cp -r gs://accs-machine-learning-bucket/<output_taxon>/* ~/<output_taxon>/
+gsutil cp -r gs://accs-machine-learning-bucket/<prediction_taxon>/* ~/<prediction_taxon>/
 
 # Run jupyter notebook
 cd notebooks
