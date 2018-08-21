@@ -1,10 +1,10 @@
 /* -*- coding: utf-8 -*-
 ---------------------------------------------------------------------------
-Cloud-reduced Greenest Pixel Composite Landsat 8 Imagery
+Cloud-reduced Greenest Pixel Composite Landsat 8 Imagery for September 2013-2017
 Author: Timm Nawrocki, Alaska Center for Conservation Science
-Created on: 2018-06-19
+Created on: 2018-08-20
 Usage: Must be executed from the Google Earth Engine code editor.
-Description: This script produces a cloud-reduced greenest pixel composite (based on maximum NDVI) for bands 1-7 plus Enhanced Vegetation Index-2 (EVI2), Normalized Burn Ratio (NBR), Normalized Difference Moisture Index (NDMI), Normalized Difference Snow Index (NDSI), Normalized Difference Vegetation Index (NDVI), Normalized Difference Water Index (NDWI) using the Landsat8 Top-Of-Atmosphere (TOA) reflectance image collection filtered to the month of July from 2013 through 2017. See Chander et al. 2009 for a description of the TOA reflectance method. from July imagery between 2013 and 2017 (inclusive). The best pixel selection is based on maximum NDVI for all metrics to ensure uniform pixel selection from all bands.
+Description: This script produces a cloud-reduced greenest pixel composite (based on maximum NDVI) for bands 1-7 plus Enhanced Vegetation Index-2 (EVI2), Normalized Burn Ratio (NBR), Normalized Difference Moisture Index (NDMI), Normalized Difference Snow Index (NDSI), Normalized Difference Vegetation Index (NDVI), Normalized Difference Water Index (NDWI) using the Landsat8 Top-Of-Atmosphere (TOA) reflectance image collection filtered to the month of September from 2013 through 2017. See Chander et al. 2009 for a description of the TOA reflectance method. from July imagery between 2013 and 2017 (inclusive). The best pixel selection is based on maximum NDVI for all metrics to ensure uniform pixel selection from all bands.
 - EVI-2 was calculated as (Red - Green) / (Red + [2.4 x Green] + 1), where Red is Landsat 8 Band 4 and Green is Landsat 8 Band 3.
 - NBR was calculated as (NIR - SWIR2) / (NIR + SWIR2), where NIR (near infrared) is Landsat 8 Band 5 and SWIR2 (short-wave infrared 2) is Landsat 8 Band 7, using the Google Earth Engine normalized difference algorithm.
 - NDMI was calculated as (NIR - SWIR1)/(NIR + SWIR1), where NIR (near infrared) is Landsat 8 Band 5 and SWIR1 (short-wave infrared 1) is Landsat 8 Band 6, using the Google Earth Engine normalized difference algorithm.
@@ -118,8 +118,8 @@ var addNDWI = function(image) {
 // Import Landsat 8 TOA Reflectance (ortho-rectified).
 var landsat8TOA = ee.ImageCollection('LANDSAT/LC8_L1T_TOA');
 
-// Filter the image collection by intersection with the area of interest from 2013 to 2017 for the month of July.
-var landsatFiltered = landsat8TOA.filterBounds(areaOfInterest).filter(ee.Filter.calendarRange(2013, 2017, 'year')).filter(ee.Filter.calendarRange(7, 7, 'month'));
+// Filter the image collection by intersection with the area of interest from 2013 to 2017 for the month of August.
+var landsatFiltered = landsat8TOA.filterBounds(areaOfInterest).filter(ee.Filter.calendarRange(2013, 2017, 'year')).filter(ee.Filter.calendarRange(9, 10, 'month'));
 print('Filtered Collection:', landsatFiltered);
 
 // Calculate NDVI for image collection and add as new band.
@@ -145,8 +145,9 @@ var ndviParams = {
 };
 
 // Add image to the map.
-Map.setCenter(-157.43408203125, 70.4845662217412, 5);
-Map.addLayer(compositeGreenest, ndviParams, 'NDVI Composite');
+Map.setCenter(-154.43408203125, 67.4845662217412, 5);
+var visParams = {bands: ['B4', 'B3', 'B2'], max: 0.3};
+Map.addLayer(compositeGreenest, visParams, 'Greenest pixel composite');
 
 // Create a single band image for Landsat 8 bands 1-7 and the additional bands calculated above.
 var band_1_ultraBlue = ee.Image(compositeGreenest).select(['B1']);
@@ -166,92 +167,92 @@ var ndwi = ee.Image(compositeGreenest).select(['NDWI']);
 // Export images to Google Drive.
 Export.image.toDrive({
   image: band_1_ultraBlue,
-  description: 'landsat8_1_ultraBlue',
+  description: '09September_1_ultraBlue',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_2_blue,
-  description: 'landsat8_2_blue',
+  description: '09September_2_blue',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_3_green,
-  description: 'landsat8_3_green',
+  description: '09September_3_green',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_4_red,
-  description: 'landsat8_4_red',
+  description: '09September_4_red',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_5_nearInfrared,
-  description: 'landsat8_5_nearInfrared',
+  description: '09September_5_nearInfrared',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_6_shortInfrared1,
-  description: 'landsat8_6_shortInfrared1',
+  description: '09September_6_shortInfrared1',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: band_7_shortInfrared2,
-  description: 'landsat8_7_shortInfrared2',
+  description: '09September_7_shortInfrared2',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: evi2,
-  description: 'landsat8_evi2',
+  description: '09September_evi2',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: nbr,
-  description: 'landsat8_nbr',
+  description: '09September_nbr',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: ndmi,
-  description: 'landsat8_ndmi',
+  description: '09September_ndmi',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: ndsi,
-  description: 'landsat8_ndsi',
+  description: '09September_ndsi',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: ndvi,
-  description: 'landsat8_ndvi',
+  description: '09September_ndvi',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
 Export.image.toDrive({
   image: ndwi,
-  description: 'landsat8_ndwi',
+  description: '09September_ndwi',
   scale: 30,
   region: areaOfInterest,
-  maxPixels: 3000000000
+  maxPixels: 30000000000
 });
