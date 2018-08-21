@@ -92,7 +92,7 @@ rm Anaconda3-5.2.0-Linux-x86_64.sh
 source ~/.bashrc
 ```
 
-# Add a certificate to allow access to notebook via https
+#### Add a certificate to allow access to notebook via https
 ```
 mkdir certs
 cd ~/certs/
@@ -103,7 +103,7 @@ Follow the prompts to create a self-signed certificate.
 
 If self-signed certificate fails or does not function, then comment out the certfile and keyfile in the Jupyter configuration and access the notebook via http.
 
-# Configure Jupyter Notebook
+#### Configure Jupyter Notebook
 `jupyter notebook --generate-config`
 
 ```
