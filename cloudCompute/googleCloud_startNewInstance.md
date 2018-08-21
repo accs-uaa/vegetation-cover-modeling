@@ -1,0 +1,128 @@
+# Starting a New Modeling Instance on Google Cloud Compute Engine
+*Author*: Timm Nawrocki, Alaska Center for Conservation Science
+*Created on*: 2018-08-20
+*Description*: Instructions to create a virtual machine instance configured with 64 vCPUs, 57.6 GB of CPU memory, a 100 GB persistent disk, and Ubuntu 18.04 LTS operating system. The machine will be capable of running Jupyter Notebooks from an Ananconda3 installation through a web browser.
+
+## Use the Google Cloud Compute interface to create a new instance with the following features:
+Name: <taxon>
+Region: us-west1 (Oregon)
+Zone: us-west1-b
+Machine Type: 64 vCPUs (57.6 GB memory)
+Boot Disk: Ubuntu 18.04 LTS
+Boot Disk Type: Standard Persistent Disk
+Size (GB): 100
+Service Account: Compute Engine default service account
+Access scopes: Allow full access to all Cloud APIs
+Firewall: Allow HTTP Traffic, Allow HTTPS traffic
+
+# Once created, the new instance will already be started
+
+# Navigate to VPC Network -> External IP Addresses
+Change instance IP Address to static from ephemeral.
+
+# Navigate to VPC Network -> Firewall Rules and create new firewall rule with the following features:
+Name: jupyter-rule
+Type: Ingress
+IP ranges: 0.0.0.0/0
+Protocols/ports" tcp:8888
+Action: Allow
+Targets: All instances in the network
+Priority: 1000
+Network: Default
+Deletion Rule: Uncheck
+
+# Create a regional storage bucket using the same region and zone as the VM instance
+    # Storage bucket in this example is named "accs-machine-learning-bucket"
+
+# Open the Google Cloud Console to run the following commands:
+
+# List the instances available in the project
+gcloud compute instances list
+
+# Start the instance if not already running
+gcloud compute instances start --zone=us-west1-b <instance_name>
+
+# SSH into the instance
+gcloud compute ssh --zone=us-west1-b <YOUR-INSTANCE-NAME>
+
+# Using ssh for the first time will create an SSH directory and key with optional password.
+
+# Update the Linux apt-get
+sudo apt-get update
+
+# Install bzip2, git, and libxml2-dev
+sudo apt-get install bzip2 git libxml2-dev
+
+# Install latest Anaconda release to home/<user>/Anaconda3
+wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
+bash Anaconda3-5.2.0-Linux-x86_64.sh
+
+# At the option to prepend the Anaconda3 install location to PATH in your /home... enter yes.
+# At the option to install Microsoft VSCode enter no.
+
+# Remove the installation file and start bashrc
+rm Anaconda3-5.2.0-Linux-x86_64.sh
+source ~/.bashrc
+
+# Create a config file for jupyter-rule
+jupyter notebook --generate-config
+
+# Enter a password (!!387#CFpxxNm7632!)
+jupyter notebook password
+
+# Add a certificate to allow access to notebook via https
+mkdir certs
+cd ~/certs/
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mykey.key -out mycert.pem
+
+# Use vi to edit the jupyter notebook configuration file to allow access from all IP addresses
+cd ~/.jupyter/
+vi jupyter_notebook_config.py
+
+# To insert in vi, enter "i" and add to the top of the document:
+________________________________________________________________
+
+c = get_config()
+
+# Support inline plotting by default
+c.IPKernelApp.pylab = 'inline'
+# Location of certificate file
+c.NotebookApp.certfile = u'/home/twnawrocki/certs/mycert.pem'
+c.NotebookApp.keyfile = u'/home/twnawrocki/certs/mykey.key'
+# Allow access from any IP address
+c.NotebookApp.ip = '*'
+# Do not open browser by default
+c.NotebookApp.open_browser = False
+# Set the port to the same port that the firewall rule designates
+c.NotebookApp.port = 8888
+
+_________________________________________________________________
+
+# To save and exit vi enter ESC the ":wq"
+
+# Download the Google Storage bucket contents to the virtual machine
+cd ~
+mkdir watershedData
+mkdir speciesData
+mkdir notebooks
+mkdir <output_taxon>
+mkdir <prediction_taxon>
+gsutil cp -r gs://accs-machine-learning-bucket/watershedData/* ~/watershedData/
+gsutil cp -r gs://accs-machine-learning-bucket/speciesData/* ~/speciesData/
+gsutil cp -r gs://accs-machine-learning-bucket/notebooks/* ~/notebooks/
+gsutil cp -r gs://accs-machine-learning-bucket/<output_taxon>/* ~/<output_taxon>/
+gsutil cp -r gs://accs-machine-learning-bucket/<prediction_taxon>/* ~/<prediction_taxon>/
+
+# Run jupyter notebook
+cd notebooks
+jupyter notebook
+
+# In browser, navigate to https://<your_VM_IP>:8888/
+
+# Upload predictions to Google Cloud storage bucket
+gsutil cp -r ~/<predictions_folder>/* gs://accs-machine-learning-bucket/<predictions_folder>
+
+# IMPORTANT: When finished, the instance must be stopped to prevent being billed additional time
+gcloud compute instances stop --zone=us-west1-b <instance_name>
+
+# IMPORTANT: Remove static ip address when finished to avoid being billed additional time for static ip
