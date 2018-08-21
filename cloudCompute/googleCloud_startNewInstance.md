@@ -77,7 +77,8 @@ Using ssh for the first time will create an SSH directory and key with optional 
 `sudo apt-get install bzip2 git libxml2-dev`
 
 #### Install latest Anaconda release
-```wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
+```
+wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
 bash Anaconda3-5.2.0-Linux-x86_64.sh
 ```
 
@@ -86,12 +87,14 @@ At the option to prepend the Anaconda3 install location to PATH in your /home...
 At the option to install Microsoft VSCode enter no.
 
 #### Remove the installation file and start bashrc
-```rm Anaconda3-5.2.0-Linux-x86_64.sh
+```
+rm Anaconda3-5.2.0-Linux-x86_64.sh
 source ~/.bashrc
 ```
 
 # Add a certificate to allow access to notebook via https
-```mkdir certs
+```
+mkdir certs
 cd ~/certs/
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout mykey.key -out mycert.pem
 ```
@@ -103,19 +106,22 @@ If self-signed certificate fails or does not function, then comment out the cert
 # Configure Jupyter Notebook
 `jupyter notebook --generate-config`
 
-```jupyter notebook password
+```
+jupyter notebook password
 Enter Password: !!387#CFpxxNm7632!
 Confirm Password: !!387#CFpxxNm7632!
 ```
 Use vi to edit the jupyter notebook configuration file to allow access from all IP addresses. To insert in vi, enter "i" and type or paste edits. When finished editting, enter ESC the ":wq" to end inserting, save, and quit.
 
-```cd ~/.jupyter/
+```
+cd ~/.jupyter/
 vi jupyter_notebook_config.py
 ```
 
 Add the following to the top of jupyter_notebook_config.py:
 
-```c = get_config()
+```
+c = get_config()
 
 # Support inline plotting by default
 c.IPKernelApp.pylab = 'inline'
@@ -131,7 +137,8 @@ c.NotebookApp.port = 8888
 ```
 
 #### Download the Google Storage bucket contents to the virtual machine
-```cd ~
+```
+cd ~
 mkdir watershedData
 mkdir speciesData
 mkdir notebooks
@@ -148,7 +155,8 @@ The vm instance is now configured and ready for use in the model train, test, an
 The following commands must be run every time the instance is started to launch the Jupyter Notebook server. These commands must be run from the instance terminal.
 
 ### Start jupyter notebook server
-```cd notebooks
+```
+cd notebooks
 jupyter notebook
 ```
 
