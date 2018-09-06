@@ -163,11 +163,12 @@ twentyfiveCodeblock = """def twentyfiveCover(cover):
 arcpy.CalculateField_management(mean_cover_sites, "twentyfive", twentyfiveExpression, "PYTHON3", twentyfiveCodeblock)
 
 # Extract predictor rasters to mean cover points
-arcpy.AddMessage("Extracting predictor raster values...")
-ExtractMultiValuesToPoints(mean_cover_sites, predictor_rasters, "NONE")
+for predictor in predictor_rasters:
+    arcpy.AddMessage("Extracting " + os.path.split(os.path.splitext(predictor)[0])[1] + " values to points...")
+    ExtractMultiValuesToPoints(mean_cover_sites, predictor, "NONE")
 
 # Convert feature class to numpy array and dataframe and export as csv
-predictor_variables = ['compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'aspect', 'l8_evi2', 'l8_green', 'l8_nbr', 'l8_ndmi', 'l8_ndsi', 'l8_ndvi', 'l8_ndwi', 'l8_nearInfrared', 'l8_red', 'l8_shortInfrared1', 'l8_shortInfrared2', 'l8_ultrablue', 'l8_blue']
+predictor_variables = ['aspect', 'compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'may_1_ultraBlue', 'may_2_blue', 'may_3_green', 'may_4_red', 'may_5_nearInfrared', 'may_6_shortInfrared1', 'may_7_shortInfrared2', 'may_evi2', 'may_nbr', 'may_ndmi', 'may_ndsi', 'may_ndvi', 'may_ndwi', 'june_1_ultraBlue', 'june_2_blue', 'june_3_green', 'june_4_red', 'june_5_nearInfrared', 'june_6_shortInfrared1', 'june_7_shortInfrared2', 'june_evi2', 'june_nbr', 'june_ndmi', 'june_ndsi', 'june_ndvi', 'june_ndwi', 'july_1_ultraBlue', 'july_2_blue', 'july_3_green', 'july_4_red', 'july_5_nearInfrared', 'july_6_shortInfrared1', 'july_7_shortInfrared2', 'july_evi2', 'july_nbr', 'july_ndmi', 'july_ndsi', 'july_ndvi', 'july_ndwi', 'august_1_ultraBlue', 'august_2_blue', 'august_3_green', 'august_4_red', 'august_5_nearInfrared', 'august_6_shortInfrared1', 'august_7_shortInfrared2', 'august_evi2', 'august_nbr', 'august_ndmi', 'august_ndsi', 'august_ndvi', 'august_ndwi', 'september_1_ultraBlue', 'september_2_blue', 'september_3_green', 'september_4_red', 'september_5_nearInfrared', 'september_6_shortInfrared1', 'september_7_shortInfrared2', 'september_evi2', 'september_nbr', 'september_ndmi', 'september_ndsi', 'september_ndvi', 'september_ndwi']
 retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover', 'strata', 'zero', 'ten', 'twentyfive']
 coordinates = ['POINT_X', 'POINT_Y']
 all_variables = retain_variables + coordinates + predictor_variables
