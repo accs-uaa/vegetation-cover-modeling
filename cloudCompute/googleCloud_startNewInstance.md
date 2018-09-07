@@ -74,7 +74,7 @@ Using ssh for the first time will create an SSH directory and key with optional 
 `sudo apt-get update`
 
 #### Install bzip2, git, and libxml2-dev
-`sudo apt-get install bzip2 git libxml2-dev`
+`sudo apt-get install bzip2 git libxml2-dev vim`
 
 #### Install latest Anaconda release
 ```
@@ -126,8 +126,8 @@ c = get_config()
 # Support inline plotting by default
 c.IPKernelApp.pylab = 'inline'
 # Location of certificate file
-c.NotebookApp.certfile = u'/home/twnawrocki/certs/mycert.pem'
-c.NotebookApp.keyfile = u'/home/twnawrocki/certs/mykey.key'
+#c.NotebookApp.certfile = u'/home/twnawrocki/certs/mycert.pem'
+#c.NotebookApp.keyfile = u'/home/twnawrocki/certs/mykey.key'
 # Allow access from any IP address
 c.NotebookApp.ip = '*'
 # Do not open browser by default
