@@ -25,13 +25,19 @@ watersheds_folder = readline(prompt='Enter location of watersheds directory: ')
 predictors_folder = readline(prompt='Enter location of predictors directory: ')
 output_folder = readline(prompt='Enter location of output directory: ')
 
+# Enter numerical range to subset the list of watersheds
+list_range = 1:28
+
 # Generate a list of all watersheds in the watersheds directory
 watersheds_list = list.files(watersheds_folder, pattern='shp$', full.names=TRUE)
+
+# Subset the watersheds list based on the list range
+watersheds_list = watersheds_list[list_range]
 watersheds_length = length(watersheds_list)
 
 # Generate a stack of all predictor variables
 predictors_all = list.files(predictors_folder, pattern='tif$', full.names=TRUE)
-predictor_stack = stack(predictor_all)
+predictor_stack = stack(predictors_all)
 
 # Define a function to read a watershed dataframe, extract data, and export to csv
 extractPredictorData = function(inWatershed, inStack, outTable) {
@@ -42,9 +48,9 @@ extractPredictorData = function(inWatershed, inStack, outTable) {
 
 # Extract predictor data to each watershed in the watersheds directory
 count = 1
-for (watershed in watershed_list) {
-  print(paste('Extracting predictor data to watershed ', count, ' of ', watershed_length, '...', sep=''))
+for (watershed in watersheds_list) {
+  print(paste('Extracting predictor data to watershed ', count, ' of ', watersheds_length, '...', sep=''))
   count = count + 1
-  output_table = paste(watersheds_folder, '/', sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(watershed)), '.csv', sep='')
-  extractPredictorData(watershed, predictor_stack, output_csv)
+  output_table = paste(output_folder, '/', sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(watershed)), '.csv', sep='')
+  extractPredictorData(watershed, predictor_stack, output_table)
 }

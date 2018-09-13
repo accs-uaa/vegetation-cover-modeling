@@ -38,7 +38,6 @@ def buildPointGrids(inFeature, tempRaster, cell_size, outShapefile):
     noData = int(arcpy.GetRasterProperties_management(tempRaster, 'ALLNODATA')[0])
     if noData == 0:
         # Convert raster to point grid
-        arcpy.AddMessage("Converting watershed raster to point grid...")
         arcpy.RasterToPoint_conversion(tempRaster, outShapefile, "VALUE")
         # Add XY Coordinates to feature class in the NAD_1983_Alaska_Albers projection
         arcpy.AddXY_management(outShapefile)
@@ -67,7 +66,7 @@ cell_size = arcpy.GetRasterProperties_management(area_of_interest, "CELLSIZEX")
 grid_raster = os.path.join(workspace_folder, "grid_raster.tif")
 count = 1
 for feature in featureClasses:
-    arcpy.AddMessage("Converting watershed to point grid for watershed " + count + " of " + featureClass_length + "...")
+    arcpy.AddMessage("Converting watershed to point grid for watershed " + str(count) + " of " + str(featureClasses_length) + "...")
     input_feature = os.path.join(watershed_geodatabase, feature)
     output_shapefile = os.path.join(output_folder, feature + ".shp")
     buildPointGrids(input_feature, grid_raster, cell_size, output_shapefile)
