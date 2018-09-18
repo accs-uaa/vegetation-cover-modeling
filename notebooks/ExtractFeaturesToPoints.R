@@ -21,9 +21,9 @@ library(rgdal)
 library(stringr)
 
 # Capture arguments by user input
-watersheds_folder = readline(prompt='Enter location of watersheds directory: ')
-predictors_folder = readline(prompt='Enter location of predictors directory: ')
-output_folder = readline(prompt='Enter location of output directory: ')
+watersheds_folder = '/home/twnawrocki_rstudio/watersheds'
+predictors_folder = '/home/twnawrocki_rstudio/predictors'
+output_folder = '/home/twnawrocki_rstudio/watershedData'
 
 # Enter numerical range to subset the list of watersheds
 list_range = 1:28

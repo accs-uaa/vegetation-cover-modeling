@@ -4,7 +4,7 @@
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
 # Created on: 2018-09-09
 # Usage: Must be executed as an R script in R, RStudio, or RStudio Server. This script has been designed to run in RStudio Server on a Google Cloud virtual machine with 4 vCPUs and 16 GB of CPU memory with an Ubuntu operating system (18.04 LTS).
-# Description: "Convert Predictions to Raster" processes the composite predictions in csv tables into rasters and mosaics all raster tiles into a single output.
+# Description: "Convert Predictions to Raster" processes the composite predictions in csv tables into rasters in img format. Raster outputs are in the same coordinate system that watersheds were exported in but will not be associated with that projection. Rasters should be mosaicked using the "Mosaic to New Raster" tool in ArcGIS after this process.
 # ---------------------------------------------------------------------------
 
 # Install required libraries if they are not already installed.
@@ -21,9 +21,8 @@ library(rgdal)
 library(stringr)
 
 # Capture arguments by user input
-predictions_folder = readline(prompt='Enter location of predictions directory: ')
-rasters_folder = readline(prompt='Enter location of directory to store raster tiles: ')
-final_raster = readline(prompt='Enter file path and name of final raster: ')
+predictions_folder = '/home/twnawrocki_rstudio/predictions/prediction_vacciniumvitisidaea'
+rasters_folder = '/home/twnawrocki_rstudio/rasters/raster_vacciniumvitisidaea'
 
 # # Generate a list of all predictions in the predictions directory
 predictions_list = list.files(predictions_folder, pattern='csv$', full.names=TRUE)
@@ -45,21 +44,3 @@ for (prediction in predictions_list) {
   output_raster = paste(rasters_folder, '/', sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(prediction)), '.img', sep='')
   convertPredictions(prediction, output_raster)
 }
-
-# Generate a list of all raster tiles in rasters directory
-rasters_list = list.files(rasters_folder, pattern='img$', full.names=TRUE)
-rasters_length = length(rasters_list)
-
-# Merge raster tiles
-raster_1 = raster(rasters_list[1])
-raster_2 = raster(rasters_list[2])
-print('Merging rasters 1 and 2...')
-merge_raster = merge(raster_1, raster_2)
-for (count in 3:rasters_length) {
-  print(paste('Adding raster ', count, ' of ', rasters_length, '...', sep=''))
-  raster_add = raster(rasters_list[count])
-  merge_raster = merge(merge_raster, raster_add)
-}
-
-# Export merged raster
-writeRaster(merge_raster, final_raster, format='HFA')

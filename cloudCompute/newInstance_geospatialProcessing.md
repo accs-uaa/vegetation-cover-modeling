@@ -110,7 +110,21 @@ This will serve as the login information for RStudio Server. All of the files ac
 
 `su <username_rstudio>`
 
-Follow by entering the user password. Upload and download files from this user.
+To enable RStudio to have read and write access over the new user directory:
+
+```
+sudo chown -R <username_rstudio> /home/<username_rstudio>/
+sudo chmod -R 770 /home/<username_rstudio>/
+```
+
+Once own/mod priveleges are transferred to the <username_rstudio> user, the <username> user will not be able to access the files. To explore the files as the <username> user, the directory ownership must be changed back to the <username> user.
+
+```
+sudo chown -R <username> /home/<username_rstudio>/
+sudo chmod -R 770 /home/<username_rstudio>/
+```
+
+When transferring files after transferring ownership, 'sudo' must precede the 'gsutil' call. Ownership does not need to be transferred back to the <username> user to transfer files to the Google Cloud Storage Bucket as long as 'sudo' is used.
 
 #### Download the Google Storage bucket contents to the virtual machine
 ```
