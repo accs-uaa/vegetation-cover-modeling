@@ -101,6 +101,16 @@ rm Anaconda3-5.2.0-Linux-x86_64.sh
 source ~/.bashrc
 ```
 
+#### Install additional python packages
+The cover modeling notebooks require packages that are not included in the Anaconda distribution for bayesian optimization and gradient boosting. Those must be installed using pip.
+
+```
+python3 -m pip install --upgrade pip setuptools wheel
+pip install GPy
+pip install GPyOpt
+pip install xgboost
+```
+
 #### Configure Jupyter Notebook
 `jupyter notebook --generate-config`
 
