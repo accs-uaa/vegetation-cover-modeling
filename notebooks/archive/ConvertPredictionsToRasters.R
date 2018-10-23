@@ -24,7 +24,7 @@ library(stringr)
 predictions_folder = '/home/twnawrocki_rstudio/predictions/prediction_vacciniumvitisidaea'
 rasters_folder = '/home/twnawrocki_rstudio/rasters/raster_vacciniumvitisidaea'
 
-# # Generate a list of all predictions in the predictions directory
+# Generate a list of all predictions in the predictions directory
 predictions_list = list.files(predictions_folder, pattern='csv$', full.names=TRUE)
 predictions_length = length(predictions_list)
 

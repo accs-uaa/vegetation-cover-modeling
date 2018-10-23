@@ -84,8 +84,8 @@ arcpy.AddMessage("Formatting presence cover data...")
 arcpy.Clip_analysis(cover_feature, aoi_poly, presence_sites, "")
 
 # Delete unmatched fields from presence and absence datasets
-arcpy.DeleteField_management(presence_sites, "abundanceID;date;vegObserver1;vegObserver2;nameAccepted;tsnITIS")
-arcpy.DeleteField_management(absence_sites, "initialProject;initialProjectTitle;plotDimensions")
+arcpy.DeleteField_management(presence_sites, "abundanceID;vegObserver1;vegObserver2;nameAccepted;tsnITIS")
+arcpy.DeleteField_management(absence_sites, "initialProject;initialProjectTitle")
 
 # Merge the presence and the absence sites
 arcpy.AddMessage("Merging presence and absence cover data...")
@@ -116,7 +116,7 @@ arcpy.SelectLayerByAttribute_management("merged_sites_joined_layer", "NEW_SELECT
 arcpy.CopyFeatures_management("merged_sites_joined_layer", mean_cover_sites)
 arcpy.AddField_management(mean_cover_sites, "cover", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
 arcpy.CalculateField_management(mean_cover_sites, "cover", "!grid_code!", "PYTHON", "")
-arcpy.DeleteField_management(mean_cover_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1;siteID_1;vascularScope_1;nonvascularScope_1;lichenScope_1;regression_1;date_1")
+arcpy.DeleteField_management(mean_cover_sites, "Join_Count;TARGET_FID;originalID;Join_Count_1;TARGET_FID_1;pointid;grid_code;project_1;siteCode_1;methodSurvey_1;methodCover_1;latitude_1;longitude_1;datum_1;POINT_X_1;POINT_Y_1;originalID_1;siteID_1;vascularScope_1;nonvascularScope_1;lichenScope_1;regression_1;date_1;plotDimensions_1")
 
 # Add a stratification field to the mean cover data and define strata based on cover values
 arcpy.AddField_management(mean_cover_sites, "strata", "DOUBLE", "", "", "", "", "NULLABLE", "NON_REQUIRED", "")
@@ -169,7 +169,7 @@ for predictor in predictor_rasters:
 
 # Convert feature class to numpy array and dataframe and export as csv
 predictor_variables = ['aspect', 'compoundTopographic', 'dateFreeze_2000s', 'dateThaw_2000s', 'elevation', 'floodplainsDist', 'growingSeason_2000s', 'heatLoad', 'integratedMoisture', 'precipAnnual_2000s', 'roughness', 'siteExposure', 'slope', 'streamLargeDist', 'streamSmallDist', 'summerWarmth_2000s', 'surfaceArea', 'surfaceRelief', 'may_1_ultraBlue', 'may_2_blue', 'may_3_green', 'may_4_red', 'may_5_nearInfrared', 'may_6_shortInfrared1', 'may_7_shortInfrared2', 'may_evi2', 'may_nbr', 'may_ndmi', 'may_ndsi', 'may_ndvi', 'may_ndwi', 'june_1_ultraBlue', 'june_2_blue', 'june_3_green', 'june_4_red', 'june_5_nearInfrared', 'june_6_shortInfrared1', 'june_7_shortInfrared2', 'june_evi2', 'june_nbr', 'june_ndmi', 'june_ndsi', 'june_ndvi', 'june_ndwi', 'july_1_ultraBlue', 'july_2_blue', 'july_3_green', 'july_4_red', 'july_5_nearInfrared', 'july_6_shortInfrared1', 'july_7_shortInfrared2', 'july_evi2', 'july_nbr', 'july_ndmi', 'july_ndsi', 'july_ndvi', 'july_ndwi', 'august_1_ultraBlue', 'august_2_blue', 'august_3_green', 'august_4_red', 'august_5_nearInfrared', 'august_6_shortInfrared1', 'august_7_shortInfrared2', 'august_evi2', 'august_nbr', 'august_ndmi', 'august_ndsi', 'august_ndvi', 'august_ndwi', 'september_1_ultraBlue', 'september_2_blue', 'september_3_green', 'september_4_red', 'september_5_nearInfrared', 'september_6_shortInfrared1', 'september_7_shortInfrared2', 'september_evi2', 'september_nbr', 'september_ndmi', 'september_ndsi', 'september_ndvi', 'september_ndwi']
-retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover', 'strata', 'zero', 'ten', 'twentyfive']
+retain_variables = ['cover', 'project', 'siteID', 'siteCode', 'methodSurvey', 'methodCover', 'plotDimensions', 'vascularScope', 'nonvascularScope', 'lichenScope', 'date', 'datum', 'latitude', 'longitude', 'strata', 'zero', 'ten', 'twentyfive']
 coordinates = ['POINT_X', 'POINT_Y']
 all_variables = retain_variables + coordinates + predictor_variables
 featureToCSV(mean_cover_sites, all_variables, output_csv)
