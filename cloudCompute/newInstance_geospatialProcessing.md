@@ -88,7 +88,6 @@ Using ssh for the first time will create an SSH directory and key with optional 
 #### Install latest R release and additional packages to enable RStudio Server
 ```
 sudo apt-get install r-base
-#sudo apt install libcurl14-openssl-dev libssl-dev
 sudo apt install libgeos-dev libproj-dev libgdal-dev libudunits2-dev
 ```
 
@@ -106,7 +105,11 @@ sudo gdebi rstudio-server-1.1.456-amd64.deb
 Add a separate user for RStudio that will have a password separate from the Google authentication. Enter the password at the prompt.
 `sudo adduser <username_rstudio>`
 
-This will serve as the login information for RStudio Server. All of the files accessible to RStudio must be added to the RStudio user. To switch user within the Ubuntu shell, enter the following command:
+Add the new user to the super user group.
+
+`sudo usermod -aG sudo <username_rstudio>`
+
+The new username and password will serve as the login information for RStudio Server. All of the files accessible to RStudio must be added to the RStudio user. To switch user within the Ubuntu shell, enter the following command:
 
 `su <username_rstudio>`
 
@@ -147,19 +150,13 @@ Creating a custom disk image will allow additional vms to be created that are id
 Once the image creates successfully, other vm can be created using the custom image, obviating the need to install software and load files for each vm independently.
 
 ## Start RStudio Server
-The following commands must be run every time the instance is started to launch the Jupyter Notebook server. These commands must be run from the instance terminal.
+RStudio will be running automatically once set up and does not need manual start and stop.
 
-### Start jupyter notebook server
-```
-cd notebooks
-jupyter notebook
-```
-
-### Open jupyter notebook
-In a browser, navigate to https://<your_VM_IP>:8888/. If the certificate does not work, then access using http.
+### Open RStudio Server
+In a browser, navigate to http://<your_VM_IP>:8787/
 
 ### Upload predictions to Google Cloud storage bucket
-`gsutil cp -r ~/<predictions_folder>/* gs://accs-machine-learning-bucket/<predictions_folder>`
+`gsutil cp -r ~/<predictions_folder>/* gs://<bucket>/<predictions_folder>`
 
 Make sure that the predictions folder exists in the storage bucket prior to upload.
 
