@@ -30,11 +30,11 @@ This script must be executed on the outputs of the predecessors "DistributionAbu
 
 ```{r inputs}
 # Enter numerical range to subset the list of watersheds
-list_range = 1:28
+list_range = 1:2
 # Define input folder
-prediction_folder = '/home/twnawrocki_rstudio/modelResults/vaccinium_vitisidaea/predictions/'
+prediction_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/predictions/test/'
 # Define output folder
-raster_folder = '/home/twnawrocki_rstudio/modelResults/vaccinium_vitisidaea/rasters/'
+raster_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/rasters/test/'
 ```
 
 ```{r libraries}
@@ -63,11 +63,10 @@ prediction_length = length(prediction_list)
 
 ```{r functions}
 # Define a function to convert the prediction csv to a raster and export an img raster file
-convertPredictions = function(inTable, outRaster) {
-  watershed_data = read.csv(inTable)
-  raster_data = watershed_data[,c('POINT_X', 'POINT_Y', 'classification')]
-  watershed_raster = rasterFromXYZ(raster_data, res=c(30,30), crs=NA, digits=5)
-  writeRaster(watershed_raster, outRaster, format='HFA')
+convertPredictions = function(input_data, output_raster) {
+  prediction_data = input_data[,c('POINT_X', 'POINT_Y', 'prediction')]
+  prediction_raster = rasterFromXYZ(prediction_data, res=c(30,30), crs=NA, digits=5)
+  writeRaster(prediction_raster, output_raster, format='HFA', overwrite=TRUE)
 }
 ```
 
@@ -76,10 +75,11 @@ convertPredictions = function(inTable, outRaster) {
 ```{r conversions}
 # Create img raster file for each prediction table in the predictions directory
 count = 1
-for (prediction in predictions_list) {
-  print(paste('Converting prediction to raster for watershed ', count, ' of ', predictions_length, '...', sep=''))
+for (prediction in prediction_list) {
+  input_data = read.csv(prediction)
+  output_raster = paste(raster_folder, '/', sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(prediction)), '.img', sep='')
+  convertPredictions(input_data, output_raster)
+  print(paste('Conversion iteration ', toString(count), ' out of ', toString(prediction_length), ' completed...', sep=''))
   count = count + 1
-  output_raster = paste(rasters_folder, '/', sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(prediction)), '.img', sep='')
-  convertPredictions(prediction, output_raster)
 }
 ```

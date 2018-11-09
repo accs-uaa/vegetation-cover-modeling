@@ -30,11 +30,11 @@ This script must be executed on the outputs of the predecessors "Create Sample O
 
 ```{r inputs}
 # Enter numerical range to subset the list of watersheds
-list_range = 1:28
+list_range = c(1)
 # Define input folder
-prediction_folder = '/home/twnawrocki_rstudio/modelResults/area_prediction/predictions/'
+prediction_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/predictions/study_area/'
 # Define output folder
-raster_folder = '/home/twnawrocki_rstudio/modelResults/area_prediction/rasters/'
+raster_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/rasters/study_area/'
 ```
 
 ```{r libraries}
@@ -66,7 +66,7 @@ prediction_length = length(prediction_list)
 convertPredictions = function(input_data, output_raster) {
   outlier_data = input_data[,c('POINT_X', 'POINT_Y', 'outlier')]
   outlier_raster = rasterFromXYZ(outlier_data, res=c(30,30), crs=NA, digits=5)
-  writeRaster(outlier_raster, output_raster, format='HFA')
+  writeRaster(outlier_raster, output_raster, format='HFA', overwrite=TRUE)
 }
 ```
 
