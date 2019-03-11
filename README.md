@@ -21,7 +21,22 @@ All of the analyses are scripted to be reproducible and abstracted to be applica
 5. Access to Google Cloud Compute (or create virtual machines by other means)
 6. Ubuntu 18.04 LTS
 7. Anaconda3 5.2.0+
-8. R?
+  a. Python 3.5.3+
+  b. os
+  c. numpy 1.13.3+
+  d. pandas 0.23.4+
+  e. seaborn
+  f. matplotlib
+  g. sklearn 0.19.1+
+  h. xgboost 0.80+
+  i. GPy
+  j. GPyOpt
+8. R 3.5.1+
+  a. sp 1.3-1+
+  b. raster 2.6-7+
+  c. rgdal 1.3-4+
+  d. stringr
+9. RStudio Server 1.1.463+
 
 ### Installing
 1. Install ArcGIS Pro, [TauDEM](http://hydrology.usu.edu/taudem/taudem5/index.html), Geomorphometry and Gradient Metrics Toolbox, and R in a local environment according to the documentation provided by the originators.
@@ -97,7 +112,7 @@ All climate variables were downloaded as historic or projected decadal averages 
 * *Decadal July Average Temperatures*: Input mean decadal average temperature rasters for July.
 * *Decadal August Average Temperatures*: Input mean decadal average temperature rasters for August.
 * *Decadal September Average Temperatures*: Input mean decadal average temperature rasters for September.
-* *Work Folder*: Folder that can store intermediate files during the processing.
+* *Workspace Folder*: Folder that can store intermediate files during the processing.
 * *Output Raster*: Output raster of inter-decadal average summer warmth index.
 
 ### ArcGIS Pro: Query Alaska VegPlots Database
@@ -143,8 +158,8 @@ To create model input data, data from the Alaska VegPlots Database must be forma
 * *Start Date*: Enter the earliest date to be included in the results.
 * *End Date*: Enter the latest date to be included in the results.
 
-### ArcGIS Pro: Model Input Processing Workflow
-Tools 1-5 below prepare model inputs. Tool 
+### ArcGIS Pro: Format Model Inputs
+Tools 1-5 below prepare model inputs. Tools should be executed in the order listed below.
 1. Create Area of Interest
 2. Format Environmental Predictors
 3. Format Spectral Predictors
@@ -152,53 +167,159 @@ Tools 1-5 below prepare model inputs. Tool
 5. Prepare Watershed Units
 6. Convert Predictions to Raster
 
-#### 1. Create Area of Interst:
+#### 1. Create Area of Interest:
 "Create Area of Interest" creates an area of interest raster from a polygon study area that is matched to the shared extent of the unformatted predictor rasters and a user-specified snap raster and cell size. This tool assumes that the polygon study area and the predictor rasters are in the same projection.
 * *Study Area*: Select a polygon study area that defines the modeling area. The area of interest (modeling area) can be different than the prediction area but must entirely include the prediction area. The projection of the study area should be set to the projection of the desired output and must be the same as the projection of all input datasets.
 * *Input Rasters*: Select a stack of unformatted predictor rasters that will be used as predictor variables in the model. Unformatted means that the rasters do not need to share the same grid or cell size. The unformatted rasters contribute a shared maximum extent to the area of interest to eliminate the possibility of NoData cells entering the model.
 * *Cell Size*: Define the cell size of the area of interest, which should match the desired cell size of analysis and model output.
 * *Snap Raster*: Define a raster to match the grid alignment of the area of interest. The snap raster should be equivalent to the grid alignment of the desired model output.
-* *Area of Interest*: Provide a name and location for the area of interest raster output.
+* *Area of Interest Raster*: Provide a name and location for the area of interest raster output.
+* *Area of Interest Feature*: Provide a name and location for the area of interest feature class output.
 
 #### 2. Format Environmental Predictors:
 "Format Environmental Predictors" processes an input raster stack for use as predictive variables in a classification or regression model by extracting to the area of interest and matching the cell size and grid. The tool will force an integer format on values. This tool assumes that the input rasters are already in the desired projection for analysis.
 * *Input Rasters*: Select a stack of unformatted predictor rasters that will be used as predictor variables in the model. Unformatted means that the rasters do not need to share the same grid or cell size. This tool will format rasters so that they do share the same grid and cell size. Stacks of continuous rasters and stacks of discrete rasters must be formatted independently because of differences in output bit depth.
-* *Area of Interest*: Select a raster that defines the study area extent, cell size, grid, and projection for the analysis.
-* *Output Folder*: An workspace folder that will store the output rasters must be selected. The folder does not need to be empty but should not have rasters named the same as the input rasters (or those rasters will be overwritten). The output names are the same as the input names.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *Output Folder*: A workspace folder that will store the output rasters must be selected. The folder does not need to be empty but should not have rasters named the same as the input rasters (or those rasters will be overwritten). The output names are the same as the input names.
 
 #### 3. Format Spectral Predictors:
 "Format Spectral Predictors" processes an input raster stack for use as predictive variables in a classification or regression model by extracting to the area of interest and matching the cell size and grid. If the cell size of the input raster stack is finer than the cell size of the area of interest then the spectral predictors will be resampled to using a bilinear interpolation. This tool assumes that the input spectral rasters are single band, mosaicked, and in the projection of the desired output.
 * *Input Tiles*: Select a stack of image tiles that will be processed into a continuous integer surface. The image tiles should be single band rasters with the band equivalent to the Landsat 8 band or calculated metric of interest. This tool assumes that the input image tiles are in the 4326 GCS WGS 1984 projection, unaltered from Google Earth Engine.
-* *Area of Interest*: Select a raster that defines the study area extent, cell size, grid, and projection for the analysis.
-* *Work Folder*: Define a folder that can store intermediate files during the processing.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *Scaling Factor*: Multiplier value to adjust output.
+* *Bit Depth*: Bit depth of the output raster.
+* *Workspace Folder*: Define a folder that can store intermediate files during the processing.
 * *Output Raster*: Define a raster that will store the continuous surface integer mosaic of the spectral data.
 
 #### 4. Format Taxon Data:
-
+"Format Taxon Data" processes the input foliar cover data for a taxon or aggregate and converts values to foliar cover integers or absences. Values from predictor rasters are extracted to the output table and exported as a csv to serve as the input for training a statistical model.
+* *Cover Feature*: Select a feature class containing foliar cover values for a taxon or aggregate.
+* *Survey Sites*: Select a feature class containing all surveyed sites.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *Merge Distance*: Distance within which to merge and average nearby survey points.
+* *Predictor Rasters*: Select a stack of formatted predictor rasters that will be used as predictor variables in the model. Formatted means that the rasters must share the same grid and cell size.
+* *Workspace Geodatabase*: Define a geodatabase that can store intermediate data during the processing.
+* *Mean Cover Sites*: Output feature class with the formatted foliar cover values and predictor values.
+* *Output csv*: Output csv table with the formatted foliar cover values and predictor values.
 
 #### 5. Prepare Watershed Units:
+"Prepare Watershed Units" creates point grids from watersheds within the area of interest based on the cell size and cell centroids.
+* *Watersheds*: Feature class containing watersheds (5th level hydrologic units) defined by USGS Watersheds Boundary Dataset. Must have continuous coverage of the area of interest.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *Workspace Folder*: Define a folder that can store intermediate files during the processing.
+* *Watershed Geodatabase*: Define an empty geodatabase that can store intermediate data during the processing.
+* *Output Folder*: An empty folder that will store the output tables.
+
 
 
 ### Configure Virtual Machines on Google Cloud Compute Engine
-Virtual machines are highly recommended for the model train, test, and predict steps of the analyses. The train, test, and predict scripts have been formatted as Jupyter notebooks and are optimized for 64 vCPU machines. Running these scripts with fewer than 64 CPUs or vCPUs will result in suboptimal performance or will not run properly. 
+Virtual machines are highly recommended for the model train, test, and predict steps of the analyses. The train, test, and predict scripts have been formatted as Jupyter notebooks and are optimized for 64 vCPU machines. Running these scripts with fewer than 64 CPUs or vCPUs will result in suboptimal performance or will not run properly. Virtual machines for R and Python have been kept separate in these processes.
 
+### R: Extract Features to Watershed Points
+
+#### 6. Extract Features to Watershed Points
+"Extract Features to Points" creates a csv table of features for all points in a regular grid point matrix for each input watershed.
+* *List Range*: Range that controls which watersheds are included in the extraction process. Allows splitting the total number of watersheds between multiple virtual machines.
+* *Watersheds Folder*: Folder containing the csv tables of watershed point grids.
+* *Predictors Folder*: Folder containing the formatted predictor rasters.
+* *Output Folder*: Folder where the csv tables of watershed point grids with extracted features will be stored.
+
+### Anaconda: Statistical Modeling of Sample Representativeness
+Sample representativeness was calculated as the support vector that bound 95% of samples in feature space. The output prediction is a raster grid where each cell is predicted to have a binary response of being either within or outside the support vector.
+
+#### 7. Create Sample Outlier Detector
+"Create Sample Outlier Detector" trains a one-class outlier detection model to determine the landscape coverage of the sampled points.
+* *Input File*: A csv of all sample points with features extracted.
+* *Output Folder*: Folder in which to store model files.
+
+#### 8. Delineate Sample Representation area
+"Delineate Prediction Area" predicts a one-class outlier detection model to watershed data to determine the sample coverage of the watershed.
+* *Model Folder*: Folder containing the scaler and outlier detector model files.
+* *Watershed Folder*: Folder containing the csv point grid tables for the watersheds with features extracted.
+* *Output Folder*: Folder that will store the sample representation prediction tables.
+* *Subset*: Range that controls which watersheds are included in the prediction process. Allows splitting the total number of watersheds between multiple virtual machines.
+
+### R: Convert Predictions to Rasters
+
+#### 9. Convert Outlier Predictions to Rasters
+"Convert Outlier Predictions to Rasters" converts watershed outlier predictions to rasters in img format so that sample representativeness can be delineated spatially. Raster outputs are in the same coordinate system that watersheds were exported in but will not be associated with that projection.
+* *List Range*: Range that controls which watersheds are included in the conversion process. Allows splitting the total number of watersheds between multiple virtual machines.
+* *Prediction Folder*: Folder containing the csv tables of predictions by watershed.
+* *Raster Folder*: Folder where the output rasters of predictions by watershed will be stored.
+
+### ArcGIS Pro: Process Sample Representation
+The study area is calculated as the largest contiguous region where at least 50% of physical space within a 1.5 x 1.5 km moving grid was within the sample representation in feature space. The prediction rasters must first be mosaicked to a single raster, which becomes the sample representation input.
+
+#### 10. Create Study area
+"Create Study Area" defines the physical area of valid statistical inference from the sample representation in feature space. The sample representation in feature space must be calculated prior to running this tool.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *July NDWI*: July Normalized Difference Wetness Index is necessary for approximately defining the extent of standing water without emergent vegetation. These areas are masked out of the calculation of the study area because water is not sampled in surveys of terrestrial vegetation.
+* *Sample Representation*: The raster output of the support vector that bounds 95% of input samples in feature space.
+* *Threshold*: The threshold value for determining area of valid statistical inference. The default value is 50%.
+* *Workspace Geodatabase*: Define a geodatabase that can store intermediate data during the processing.
+* *Workspace Folder*: Define a folder that can store intermediate files during the processing.
+* *Spatial Certainty*: Output raster with the continuous gradient of spatial certainty relative to sample representativeness.
+* *Study Area*: Output study area polygon feature class.
+
+### Anaconda: Statistical Modeling of Foliar cover
+The statistical modeling of foliar cover for individual species occurs in a train-test cross validation and train step and a predict step. These processes can take numerous hours to days to complete. Conducting all processes on virtual machines is highly recommended.
+
+#### 11. Distribution-abundance Train and Test by R Squared
+"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent cover. All model performance metrics are calculated on independent test partitions. Models are optimized to maximize R squared.
+* *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
+* *Output Folder*: Folder where the model files, report, and figures will be saved.
+* *Output Report Name*: Name (.html file) of the output text report on statistical performance.
+* *Taxon Name*: Name of the taxon or aggregate (spaces allowed).
+
+#### 11-alt. Distribution-abundance Train and Test by Negative Mean Squared Error
+"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent cover. All model performance metrics are calculated on independent test partitions. Models are optimized to minimize negative mean squared error.
+* *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
+* *Output Folder*: Folder where the model files, report, and figures will be saved.
+* *Output Report Name*: Name (.html file) of the output text report on statistical performance.
+* *Taxon Name*: Name of the taxon or aggregate (spaces allowed).
+
+#### 12. Map Performance Discrete NSSI
+"Map Performance Discrete NSSI" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a discrete type vegetation map, the North Slope land cover map. All model performance metrics are calculated on independent test partitions.
+* *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
+* *Metrics File*: Output csv table containing the mean foliar cover observations and the predictions based on the discrete type map.
+
+#### 13. Map Performance Discrete Random
+"Map Performance Discrete Random" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a random distribution of 25 discrete classes. All model performance metrics are calculated on independent test partitions.
+* *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
+* *Metrics File*: Output csv table containing the mean foliar cover observations and the predictions based on the discrete type map.
+
+#### 14. Distribution-abundance Predictor
+"Distribution-Abundance Predict" applies the trained classifier and regressor to data in regular point grid format stored in csv files to create a composite prediction representing the distribution and proportional abundance of the target species.
+* *Model Folder*: Folder containing the classifier for distribution and regressor for foliar cover of a target species.
+* *Watershed Folder*: Folder containing the csv point grid tables for the watersheds with features extracted.
+* *Prediction Folder*: Output folder where the csv tables with species foliar cover predictions by watershed will be stored.
+
+### R: Convert Predictions to Rasters
+
+#### 15. Convert Distribution-abundance Predictions to Rasters
+"Convert Distribution-abundance Predictions to Raster" processes the composite distribution-adundance predictions in csv tables into rasters in img format. Raster outputs are in the same coordinate system that watersheds were exported in but will not be associated with that projection.
+* *List Range*: Range that controls which watersheds are included in the extraction process. Allows splitting the total number of watersheds between multiple virtual machines.
+* *Prediction Folder*: Folder containing the csv tables with species foliar cover predictions by watershed.
+* *Raster Folder*: Output folder where the rasters with species foliar cover predictions by watershed will be stored.
+
+### ArcGIS Pro: Process Sample Representation
+The output foliar cover prediction rasters must be mosaicked into a single continuous surface using the Mosaic to New Raster tool. The raster must then be post-processed to produce a final output.
+
+#### 16. Post-process Distribution-abundance
+"Post-process Distribution-abundance" converts predictions to positive integers and extracts to the study area.
+* *Area of Interest*: Select a raster that defines the extent, cell size, grid, and projection for the analysis.
+* *Study Area*: Select a polygon feature class that defines the area of valid statistical inference.
+* *Species Raster*: Composite raster from statistical model predictions for a particular taxon or aggregate.
+* *Output Raster*: Output integer raster representing foliar cover prediction for a taxon or aggregate.
 
 
 ## Credits
-
-### Built With
-* ArcGIS Pro 2.2
-* Notepad ++
-* R 3.4.2
-* RStudio 1.0.153
-* Scikit-learn 0.18.1
-* mysql-connecter 2.0.4
 
 ### Authors
 * **Timm Nawrocki** - *Alaska Center for Conservation Science, University of Alaska Anchorage*
 
 ### Usage Requirements
-Usage of the tools included in this toolbox should include citations of the following papers:
+Usage of the tools included in this toolbox should cited as follows:
 
 Nawrocki, T., ... tbd
 
@@ -218,7 +339,38 @@ Nawrocki, T., ... tbd
 2. Moore, I.D., P.E. Gessler, G.A. Nielsen, and G.A. Petersen. 1993. Terrain attributes: estimation methods and scale effects. In:  Jakeman, A.J., and M. McAleer (eds.). Modeling Change in Environmental Systems. Wiley. London, United Kingdom. 189-214.
 
 #### Geomorphometry and Gradient Toolbox 2.0: Heat Load Index
-McCune, B., and D. Keon. 2002. Equations for potential annual direct incident radiation and heat load index. Journal of Vegetation Science. 13. 603-606.
+1. McCune, B., and D. Keon. 2002. Equations for potential annual direct incident radiation and heat load index. Journal of Vegetation Science. 13. 603-606.
+
+#### Google Earth Engine
+1. Gorelick, N. M. Hancher, M. Dixon, S. Ilyushchenko, D. Thau, and R. Moore. Google Earth Engine: Planetary-scale geospatial analysis for everyone. Remote Sensing of Environment. 202: 18-27.
+
+#### R library: sp
+1. Pebesma, E.J., and R.S. Bivand. 2005. Classes and methods for spatial data in R. R News. 5: https://cran.r-project.org/doc/Rnews/
+2. Bivand, R.S., E.J. Pebesma, and V. Gomez-Rubio. 2013. Applied spatial data analysis with R, second edition. Springer. New York, New York. 405 p.
+
+#### R library: raster
+1. Hijmans, R.J. 2017. Raster: Geographic Data Analysis and Modeling. R package version 2.6-7. https://CRAN.R-project.org/package=raster
+
+#### R library: rgdal
+1. Bivand, R.S., T. Keitt, and B. Rowlingson. 2018. Rgdal: Bindings for the ‘Geospatial’ Data Abstraction Library. R package version 1.3-4. https://CRAN.R-project.org/package=rgdal
+
+#### Geospatial Data Abstraction Library
+1. GDAL/OGR contributors. 2018. GDAL/OGR Geospatial Data Abstraction software Library. Open Source Geospatial Foundation. http://gdal.org
+
+#### Python Package: sklearn
+1. Pedregosa, F., G. Varoquaux, A. Gramfort, V. Michel, B. Thirion, O. Grisel, M. Blondel, P. Prettenhofer, R. Weiss, V. Duborg, J. Vanderplas, A. Passos, D. Cournapeau, M. Brucher, M. Perrot, and E. Duchesnay. 2011. Scikit-learn: machine learning in python. Journal of Machine Learning Research. 12: 2825-2830.
+2. Buitinck, L., G. Louppe, M. Blondel, F. Pedregosa, A. Mueller, O. Grisel, V. Niculae, P. Prettenhofer, A. Gramfort, J. Grobler, R. Layton, J. Vanderplas, A. Joly, B. Holt, and G. Varaoquaux. 2013. API Design for machine learning software: experiences from the scikit-learn project. European Conference on Machine Learning and Principles and Practices of Knowledge Discovery in Databases: Languages for Data Mining and Machine Learning. 108-122 p. Available: https://arxiv.org/abs/1309.0238
+
+#### Python Package: GPy
+1. GPy. 2014. A Gaussian Process Framework in Python. Available: https://github.com/SheffieldML/GPy
+
+#### Python Package GPyOpt
+1. González, J., M. Osborne, and N.D. Lawrence. 2016a. GLASSES: Relieving the myopia of bayesian optimization. Proceedings of the 19th Internation Conference on Artificial Intelligence and Statistics (AISTATS). 790-799.
+2. González, J., Z. Dai, P. Hennig, and N.D. Lawrence. 2016b. Batch bayesian optimization via local penalization. Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS). 648-657.
+3. González, J., Z. Dai, P. Hennig, and N.D. Lawrence. 2016c. GPyOpt: A Bayesian Optimization Framework for Python. Available: https://github.com/SheffieldML/GPyOpt
+
+#### XGBoost
+1. Chen, T., and C. Guestrin. 2016. XGBoost: A Scalable Tree Boosting System. Proceedings of the 22nd Association for Computing Machinery International Conference. 785-794.
 
 ### License
-This project is private and can be used by Alaska Center for Conservation Science and collaborators.
+This repository and its contents are licensed under Creative Commons Attribution-Share Alike.
