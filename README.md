@@ -1,7 +1,7 @@
 # Vegetation Cover Modeling
-*Author*: Timm Nawrocki, Alaska Center for Conservation Science
-*Created on*: 2018-08-20
-*Description*: Scripts and script-tools for semi-quantitative mapping of vegetation cover and patterns of species diversity.
+*Author*: Timm Nawrocki, Alaska Center for Conservation Science  
+*Created on*: 2018-08-20  
+*Description*: Scripts and script-tools for semi-quantitative mapping of vegetation cover and patterns of species diversity.  
 
 ## Getting Started
 These instructions will enable you to run the Vegetation Cover Modeling scripts. The scripts integrate multiple systems: MySQL database, Google Earth Engine, python-based ArcGIS Pro toolbox, jupyter notebooks optimized for Google Cloud Compute Engine, and R scripts executable in R or RStudio. The ArcGIS python environment must be set up with python libraries that are not included in the ArcGIS python installation by default. Additional python environments using the Anaconda 3 distribution must be set up on virtual machines.
@@ -9,34 +9,34 @@ These instructions will enable you to run the Vegetation Cover Modeling scripts.
 All of the analyses are scripted to be reproducible and abstracted to be applicable beyond this particular project. Because scripts are abstracted, they will not run without being properly parameterized. Inputs and outputs have not therefore been captured in the scripts. Reproducing the results of this study will require proper execution of all scripts. Detailed instructions for each script or tool have been included in this readme file below.
 
 ### Prerequisites
-1. ArcGIS Pro 2.2.3+
-  a. Python 3.5.3+
-  b. mysql-connecter 2.0.4+
-  c. os
-  d. numpy 1.13.3+
-  e. pandas 0.23.4+
-2. Geomorphometry and Gradient Metrics ArcGIS Toolbox 2.0+
-3. TauDEM 5.3.7+
-4. Access to Google Earth Engine (or create Landsat 8 composites by other means)
-5. Access to Google Cloud Compute (or create virtual machines by other means)
-6. Ubuntu 18.04 LTS
-7. Anaconda3 5.2.0+
-  a. Python 3.5.3+
-  b. os
-  c. numpy 1.13.3+
-  d. pandas 0.23.4+
-  e. seaborn
-  f. matplotlib
-  g. sklearn 0.19.1+
-  h. xgboost 0.80+
-  i. GPy
-  j. GPyOpt
-8. R 3.5.1+
-  a. sp 1.3-1+
-  b. raster 2.6-7+
-  c. rgdal 1.3-4+
-  d. stringr
-9. RStudio Server 1.1.463+
+1. ArcGIS Pro 2.2.3+  
+  a. Python 3.5.3+  
+  b. mysql-connecter 2.0.4+  
+  c. os  
+  d. numpy 1.13.3+  
+  e. pandas 0.23.4+  
+2. Geomorphometry and Gradient Metrics ArcGIS Toolbox 2.0+  
+3. TauDEM 5.3.7+  
+4. Access to Google Earth Engine (or create Landsat 8 composites by other means)  
+5. Access to Google Cloud Compute (or create virtual machines by other means)  
+6. Ubuntu 18.04 LTS  
+7. Anaconda3 5.2.0+  
+  a. Python 3.5.3+  
+  b. os  
+  c. numpy 1.13.3+  
+  d. pandas 0.23.4+  
+  e. seaborn  
+  f. matplotlib  
+  g. sklearn 0.19.1+  
+  h. xgboost 0.80+  
+  i. GPy  
+  j. GPyOpt  
+8. R 3.5.1+  
+  a. sp 1.3-1+  
+  b. raster 2.6-7+  
+  c. rgdal 1.3-4+  
+  d. stringr  
+9. RStudio Server 1.1.463+  
 
 ### Installing
 1. Install ArcGIS Pro, [TauDEM](http://hydrology.usu.edu/taudem/taudem5/index.html), Geomorphometry and Gradient Metrics Toolbox, and R in a local environment according to the documentation provided by the originators.
@@ -321,7 +321,7 @@ The output foliar cover prediction rasters must be mosaicked into a single conti
 ### Usage Requirements
 Usage of the tools included in this toolbox should cited as follows:
 
-Nawrocki, T., ... tbd
+Nawrocki, T.W. 2018. Vegetation Cover Modeling. Git Repository. Available: https://github.com/accs-uaa/vegetation-cover-modeling
 
 #### Geomorphometry and Gradient Toolbox 2.0
 1. Evans, J.S., J. Oakleaf, S.A. Cushman, and D. Theobald. 2014. An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. Available:  http://evansmurphy.wix.com/evansspatial.
