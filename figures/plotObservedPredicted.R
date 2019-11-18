@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------
+# Plot observed vs mean predicted foliar cover by species
+# Author: Timm Nawrocki, Alaska Center for Conservation Science
+# Created on: 2019-03-31
+# Usage: Code chunks must be executed sequentially in R Studio or R Studio Server installation. Created using R Studio version 1.1.456 and R 3.5.1.
+# Description: "Plot observed vs mean predicted foliar cover by species" creates a plot (Figure 3) showing the observed vs mean predicted values with theoretical 1:1 ratio line and loess smoothed conditional mean.
+# ---------------------------------------------------------------------------
+
 # Import required libraries
 library(dplyr)
 library(ggplot2)
@@ -7,13 +16,16 @@ library(tidyr)
 library(gridExtra)
 library(scales)
 
+# Define data directory
+data_directory = 'K:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/'
+
 # Import data
-ca_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/carex_aquatilis/prediction.csv'
-ea_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/eriophorum_angustifolium/prediction.csv'
-ev_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/eriophorum_vaginatum/prediction.csv'
-rt_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/rhododendron_tomentosum/prediction.csv'
-sp_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/salix_pulchra/prediction.csv'
-vv_file = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/vaccinium_vitisidaea/prediction.csv'
+ca_file = paste(data_directory, 'carex_aquatilis/prediction.csv', sep='')
+ea_file = paste(data_directory, 'eriophorum_angustifolium/prediction.csv', sep='')
+ev_file = paste(data_directory, 'eriophorum_vaginatum/prediction.csv', sep='')
+rt_file = paste(data_directory, 'rhododendron_tomentosum/prediction.csv', sep='')
+sp_file = paste(data_directory, 'salix_pulchra/prediction.csv', sep='')
+vv_file = paste(data_directory, 'vaccinium_vitisidaea/prediction.csv', sep='')
 ca_predictions = read.csv(ca_file, header=TRUE, stringsAsFactors = FALSE)
 ea_predictions = read.csv(ea_file, header=TRUE, stringsAsFactors = FALSE)
 ev_predictions = read.csv(ev_file, header=TRUE, stringsAsFactors = FALSE)
@@ -22,62 +34,59 @@ sp_predictions = read.csv(sp_file, header=TRUE, stringsAsFactors = FALSE)
 vv_predictions = read.csv(vv_file, header=TRUE, stringsAsFactors = FALSE)
 
 # Define a function to calculate mean predictions for AIM NPR-A
-meanAIM = function(predictions) {
+meanAIM = function(predictions, species_name) {
   predictions_aim = predictions %>%
     filter(project == 'AIM NPR-A') %>%
     group_by(siteID, cover) %>%
     summarize(prediction = mean(prediction))
+  predictions_aim$species = species_name
   return(predictions_aim)
 }
 
 # Find mean predictions from AIM NPR-A
-ca_mean = meanAIM(ca_predictions)
-ea_mean = meanAIM(ea_predictions)
-ev_mean = meanAIM(ev_predictions)
-rt_mean = meanAIM(rt_predictions)
-sp_mean = meanAIM(sp_predictions)
-vv_mean = meanAIM(vv_predictions)
+ca_mean = meanAIM(ca_predictions, 'Carex aquatilis')
+ea_mean = meanAIM(ea_predictions, 'Eriophorum angustifolium')
+ev_mean = meanAIM(ev_predictions, 'Eriophorum vaginatum')
+rt_mean = meanAIM(rt_predictions, 'Rhododendron tomentosum')
+sp_mean = meanAIM(sp_predictions, 'Salix pulchra')
+vv_mean = meanAIM(vv_predictions, 'Vaccinium vitis-idaea')
 
-# Define function for scatter plot
-scatter_plot = function(inData, x_variable, y_variable, title, x_label, y_label) {
-  scale_max = max(x_variable)
-  font_size = theme(axis.title = element_text(size=12), axis.text = element_text(size = 10))
-  plot = ggplot(data=inData, aes(x=x_variable, y=y_variable)) +
-    theme_bw() +
-    theme(axis.text.x = element_text(color= "black")) +
-    theme(axis.text.y = element_text(color= "black")) +
-    theme(axis.title.x = element_text(margin = margin(t=10))) +
-    theme(axis.title.y = element_text(margin = margin(r=10))) +
-    theme(plot.title = element_text(hjust = 0.5, face="italic")) +
-    geom_point() +
-    geom_smooth(method='loess',
-                color="black",
-                fill="grey20",
-                size=0.5) +
-    geom_segment(x=0,
-                 y=0,
-                 xend=scale_max,
-                 yend=scale_max,
-                 size=0.5,
-                 linetype=2) +
-    labs(title=title) +
-    labs(x=x_label, y=y_label) +
-    coord_fixed(ratio=1) +
-    scale_x_continuous(breaks=seq(20, 100, by=20), limits=c(0,scale_max)) +
-    scale_y_continuous(breaks=seq(20, 100, by=20), limits=c(0,scale_max)) +
-    font_size
-  return(plot)
-}
+# Merge mean data frames
+mean_predictions = do.call('rbind', list(ca_mean, ea_mean, ev_mean, rt_mean, sp_mean, vv_mean))
 
-# Plot each species
-ca_plot = scatter_plot(ca_mean, ca_mean$cover, ca_mean$prediction, "Carex aquatilis", "Observed foliar cover (%)", "Predicted foliar cover (%)")
-ea_plot = scatter_plot(ea_mean, ea_mean$cover, ea_mean$prediction, "Eriophorum angustifolium", "Observed foliar cover (%)", "Predicted foliar cover (%)")
-ev_plot = scatter_plot(ev_mean, ev_mean$cover, ev_mean$prediction, "Eriophorum vaginatum", "Observed foliar cover (%)", "Predicted foliar cover (%)")
-rt_plot = scatter_plot(rt_mean, rt_mean$cover, rt_mean$prediction, "Rhododendron tomentosum", "Observed foliar cover (%)", "Predicted foliar cover (%)")
-sp_plot = scatter_plot(sp_mean, sp_mean$cover, sp_mean$prediction, "Salix pulchra", "Observed foliar cover (%)", "Predicted foliar cover (%)")
-vv_plot = scatter_plot(vv_mean, vv_mean$cover, vv_mean$prediction, "Vaccinium vitis-idaea", "Observed foliar cover (%)", "Predicted foliar cover (%)")
+# Plot all species
+x_max = max(mean_predictions$cover)
+y_max = max(mean_predictions$prediction)
+font = theme(strip.text = element_text(size=14, color='black', face='italic'),
+             strip.background = element_rect(color = 'black', fill = 'white'),
+             axis.text = element_text(size = 12),
+             axis.text.x = element_text(color= 'black'),
+             axis.text.y = element_text(color= 'black'),
+             axis.title = element_text(size=14),
+             axis.title.x = element_text(margin = margin(t=10)),
+             axis.title.y = element_text(margin = margin(r=10))
+             )
+mean_plot = ggplot(data=mean_predictions, aes(x=cover, y=prediction)) +
+  theme_bw() +
+  font +
+  geom_smooth(method='loess',
+              color="#406190",
+              fill="#b7c9de",
+              size=0.5,
+              linetype=2) +
+  geom_point(alpha = 0.25) +
+  geom_segment(x=0,
+               y=0,
+               xend=100,
+               yend=100,
+               size=0.5,
+               linetype=1) +
+  facet_wrap(~species, ncol=2) +
+  labs(x='Observed foliar cover (%)', y='Predicted foliar cover (%)') +
+  coord_fixed(ratio=1) +
+  scale_x_continuous(breaks=seq(0, 100, by=10), limits=c(0,x_max), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks=seq(0, 100, by=10), limits=c(0,y_max), expand = c(0.02, 0))
 
-# Combine plots into a single output and export
-output = 'K:/VegetationEcology/Data_Harmonization/Documents/Figures/Fig6.tif'
-plot_grid = grid.arrange(ca_plot, ea_plot, ev_plot, rt_plot, sp_plot, vv_plot, nrow=3)
-ggsave(output, plot=plot_grid, device='tiff', path=NULL, scale=1, width=8, height=10, units='in', dpi=600, limitsize=TRUE)
+# Save and export jpg at 600 dpi
+tif_output = 'K:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Documents/GradientCover_EcologicalApplications/Figures/Fig3.jpg'
+ggsave(tif_output, plot=mean_plot, device='jpeg', path=NULL, scale=1, width=8, height=8, units='in', dpi=600, limitsize=TRUE)
