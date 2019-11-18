@@ -87,8 +87,8 @@ Using ssh for the first time will create an SSH directory and key with optional 
 
 #### Install latest Anaconda release
 ```
-wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
-bash Anaconda3-5.2.0-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
+bash Anaconda3-2019.10-Linux-x86_64.sh
 ```
 
 At the option to prepend the Anaconda3 install location to PATH in your /home... enter yes.
@@ -97,7 +97,7 @@ At the option to install Microsoft VSCode enter no.
 
 #### Remove the installation file and start bashrc
 ```
-rm Anaconda3-5.2.0-Linux-x86_64.sh
+rm Anaconda3-2019.10-Linux-x86_64.sh
 source ~/.bashrc
 ```
 
