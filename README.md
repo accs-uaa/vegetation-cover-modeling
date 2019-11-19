@@ -1,10 +1,11 @@
 # Vegetation Cover Modeling
 *Author*: Timm Nawrocki, Alaska Center for Conservation Science  
-*Created on*: 2018-08-20  
-*Description*: Scripts and script-tools for semi-quantitative mapping of vegetation cover and patterns of species diversity.  
+*Created On*: 2018-08-20 
+*Last Updated:* 2019-11-18 
+*Description*: Scripts and script-tools for quantitative mapping of plant species foliar cover.  
 
 ## Getting Started
-These instructions will enable you to run the Vegetation Cover Modeling scripts. The scripts integrate multiple systems: MySQL database, Google Earth Engine, python-based ArcGIS Pro toolbox, jupyter notebooks optimized for Google Cloud Compute Engine, and R scripts executable in R or RStudio. The ArcGIS python environment must be set up with python libraries that are not included in the ArcGIS python installation by default. Additional python environments using the Anaconda 3 distribution must be set up on virtual machines.
+These instructions will enable you to run the Vegetation Cover Modeling scripts. The scripts integrate multiple systems: MySQL database, Google Earth Engine, python-based ArcGIS Pro toolbox, jupyter notebooks optimized for Google Cloud Compute Engine, and R scripts executable in R or RStudio. The ArcGIS python environment must be set up with python libraries that are not included in the ArcGIS python installation by default. Additional python environments using the Anaconda 3 distribution can be set up on local or virtual machines.
 
 All of the analyses are scripted to be reproducible and abstracted to be applicable beyond this particular project. Because scripts are abstracted, they will not run without being properly parameterized. Inputs and outputs have not therefore been captured in the scripts. Reproducing the results of this study will require proper execution of all scripts. Detailed instructions for each script or tool have been included in this readme file below.
 
@@ -20,30 +21,31 @@ All of the analyses are scripted to be reproducible and abstracted to be applica
 4. Access to Google Earth Engine (or create Landsat 8 composites by other means)  
 5. Access to Google Cloud Compute (or create virtual machines by other means)  
 6. Ubuntu 18.04 LTS  
-7. Anaconda3 5.2.0+  
-  a. Python 3.5.3+  
+7. Anaconda 3.7 Build 2019.10  
+  a. Python 3.7.4+  
   b. os  
-  c. numpy 1.13.3+  
-  d. pandas 0.23.4+  
-  e. seaborn  
-  f. matplotlib  
-  g. sklearn 0.19.1+  
-  h. xgboost 0.80+  
-  i. GPy  
-  j. GPyOpt  
-8. R 3.5.1+  
-  a. sp 1.3-1+  
-  b. raster 2.6-7+  
-  c. rgdal 1.3-4+  
+  c. numpy 1.16.5+  
+  d. pandas 0.25.1+  
+  e. seaborn 0.9.0+  
+  f. matplotlib 3.1.1+  
+  g. scikit-learn 0.21.3+  
+  h. xgboost 0.90+  
+  i. GPy 1.9.9+  
+  j. GPyOpt 1.2.5+
+  k. joblib 0.13.2+  
+8. R 3.6.1+  
+  a. sp 1.3-2+  
+  b. raster 3.0-7+  
+  c. rgdal 1.4-7+  
   d. stringr  
-9. RStudio Server 1.1.463+  
+9. RStudio Server 1.2.5019+  
 
 ### Installing
-1. Install ArcGIS Pro, [TauDEM](http://hydrology.usu.edu/taudem/taudem5/index.html), Geomorphometry and Gradient Metrics Toolbox, and R in a local environment according to the documentation provided by the originators.
+1. Install ArcGIS Pro, [TauDEM](http://hydrology.usu.edu/taudem/taudem5/index.html), [Geomorphometry and Gradient Metrics Toolbox](https://evansmurphy.wixsite.com/evansspatial/arcgis-gradient-metrics-toolbox), and [R](https://www.r-project.org/) in a local environment according to the documentation provided by the originators.
 2. In ArcGIS Pro, select the python management option. Using the conda install option, install the most recent version of mysql-connector.
 3. Download or clone this repository to a folder on a drive accessible to your computer. Local drives may perform better than network drives. The structure and names of files and folders within the repository should not be altered.
 4. In ArcGIS Pro, open the catalog tab, right click the toolbox folder, select "add toolbox", and navigate to the location of the toolbox in the repository.
-5. In order to query vegetation data, set up a mysql server and create an instance of the Alaska VegPlots Database. For more information, see: [https://github.com/accs-uaa/vegetation-plots-database](https://github.com/accs-uaa/vegetation-plots-database).
+5. In order to query vegetation data, set up a mysql server and create an instance of the Alaska Vegetation Plots Database. For more information, see: [https://github.com/accs-uaa/vegetation-plots-database](https://github.com/accs-uaa/vegetation-plots-database).
 6. Configure access to Google Earth Engine and Google Cloud Compute Engine.
 7. Set up virtual machines in Google Cloud Compute Engine according to instructions provided in the "cloudCompute" folder of this repository.
 
@@ -115,8 +117,8 @@ All climate variables were downloaded as historic or projected decadal averages 
 * *Workspace Folder*: Folder that can store intermediate files during the processing.
 * *Output Raster*: Output raster of inter-decadal average summer warmth index.
 
-### ArcGIS Pro: Query Alaska VegPlots Database
-To create model input data, data from the Alaska VegPlots Database must be formatted into feature classes. This workflow assumes that the user has set up a copy of the Alaska VegPlots Database on a local MySQL server or an accessible MySQL server and installed the associated toolbox. To access the project repository for the Alaska VegPlots Database, see: [https://github.com/accs-uaa/vegetation-plots-database](https://github.com/accs-uaa/vegetation-plots-database).
+### ArcGIS Pro: Query Alaska Vegetation Plots Database
+To create model input data, data from the Alaska Vegetation Plots Database must be formatted into feature classes. This workflow assumes that the user has set up a copy of the Alaska Vegetation Plots Database on a local MySQL server or an accessible MySQL server and installed the associated toolbox. To access the project repository for the Alaska Vegetation Plots Database, see: [https://github.com/accs-uaa/vegetation-plots-database](https://github.com/accs-uaa/vegetation-plots-database).
 
 #### Query Taxon Cover:
 "Query Taxon Cover" queries the MySQL Alaska Vegetation Plots Database for cover by a taxon. Cover values are aggregated so that multiple values at a single site for a single date are summed.
@@ -262,29 +264,29 @@ The study area is calculated as the largest contiguous region where at least 50%
 * *Study Area*: Output study area polygon feature class.
 
 ### Anaconda: Statistical Modeling of Foliar cover
-The statistical modeling of foliar cover for individual species occurs in a train-test cross validation and train step and a predict step. These processes can take numerous hours to days to complete. Conducting all processes on virtual machines is highly recommended.
+The statistical modeling of foliar cover for individual species occurs in a train-test cross validation and train step and a predict step. These processes can take numerous hours or days to complete. Conducting all processes on virtual machines is highly recommended.
 
 #### 11. Distribution-abundance Train and Test by R Squared
-"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent cover. All model performance metrics are calculated on independent test partitions. Models are optimized to maximize R squared.
+"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent foliar cover. All model performance metrics are calculated on the combined independent test partitions of a single iteration of 10-fold cross-validation. Optimization of hyperparameters and thresholds occurs in nested 10-fold cross-validations that use only the training partitions of the outer cross-validation folds. Models are optimized to maximize R squared.
 * *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
 * *Output Folder*: Folder where the model files, report, and figures will be saved.
 * *Output Report Name*: Name (.html file) of the output text report on statistical performance.
 * *Taxon Name*: Name of the taxon or aggregate (spaces allowed).
 
 #### 11-alt. Distribution-abundance Train and Test by Negative Mean Squared Error
-"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent cover. All model performance metrics are calculated on independent test partitions. Models are optimized to minimize negative mean squared error.
+"Distribution-Abundance Train and Test" trains a classifier to predict species presence and absence and trains a regressor to predict species abundance within areas of predicted presence. The predictions are composited into a single continuous output that can theoretically range from 0 to 100 representing percent foliar cover. All model performance metrics are calculated on the combined independent test partitions of a single iteration of 10-fold cross-validation. Optimization of hyperparameters and thresholds occurs in nested 10-fold cross-validations that use only the training partitions of the outer cross-validation folds. Models are optimized to minimize negative mean squared error.
 * *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
 * *Output Folder*: Folder where the model files, report, and figures will be saved.
 * *Output Report Name*: Name (.html file) of the output text report on statistical performance.
 * *Taxon Name*: Name of the taxon or aggregate (spaces allowed).
 
 #### 12. Map Performance Discrete NSSI
-"Map Performance Discrete NSSI" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a discrete type vegetation map, the North Slope land cover map. All model performance metrics are calculated on independent test partitions.
+"Map Performance Discrete NSSI" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a discrete type vegetation map, the North Slope Land Cover map. All model performance metrics are calculated on the combined independent test partitions of 10-fold cross-validation.
 * *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
 * *Metrics File*: Output csv table containing the mean foliar cover observations and the predictions based on the discrete type map.
 
 #### 13. Map Performance Discrete Random
-"Map Performance Discrete Random" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a random distribution of 25 discrete classes. All model performance metrics are calculated on independent test partitions.
+"Map Performance Discrete Random" estimates the amount of observed spatial heterogeneity in species foliar cover predicted by a random distribution of 25 discrete classes. All model performance metrics are calculated on the combined independent test partitions of 10-fold cross-validation.
 * *Input File*: CSV table containing the mean foliar cover observations for a particular species with the features extracted.
 * *Metrics File*: Output csv table containing the mean foliar cover observations and the predictions based on the discrete type map.
 
@@ -321,7 +323,7 @@ The output foliar cover prediction rasters must be mosaicked into a single conti
 ### Usage Requirements
 Usage of the tools included in this toolbox should cited as follows:
 
-Nawrocki, T.W. 2018. Vegetation Cover Modeling. Git Repository. Available: https://github.com/accs-uaa/vegetation-cover-modeling
+Nawrocki, T.W. 2019. Vegetation Cover Modeling. Git Repository. Available: https://github.com/accs-uaa/vegetation-cover-modeling
 
 #### Geomorphometry and Gradient Toolbox 2.0
 1. Evans, J.S., J. Oakleaf, S.A. Cushman, and D. Theobald. 2014. An ArcGIS Toolbox for Surface Gradient and Geomorphometric Modeling, version 2.0-0. Available:  http://evansmurphy.wix.com/evansspatial.
