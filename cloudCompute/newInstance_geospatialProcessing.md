@@ -94,12 +94,12 @@ sudo apt install libgeos-dev libproj-dev libgdal-dev libudunits2-dev
 #### Install latest RStudio Server
 ```
 sudo apt-get install gdebi-core
-wget https://download2.rstudio.org/rstudio-server-1.1.456-amd64.deb
-sudo gdebi rstudio-server-1.1.456-amd64.deb
+wget https://download2.rstudio.org/server/bionic/amd64/rstudio-server-1.2.5019-amd64.deb
+sudo gdebi rstudio-server-1.2.5019-amd64.deb
 ```
 
 #### Remove the installation file
-`rm rstudio-server-1.1.456-amd64.deb`
+`rm rstudio-server-1.2.5019-amd64.deb`
 
 #### Create a user for RStudio Server and a password
 Add a separate user for RStudio that will have a password separate from the Google authentication. Enter the password at the prompt.
