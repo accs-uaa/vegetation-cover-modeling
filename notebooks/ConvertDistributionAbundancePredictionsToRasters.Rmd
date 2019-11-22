@@ -32,9 +32,9 @@ This script must be executed on the outputs of the predecessors "DistributionAbu
 # Enter numerical range to subset the list of watersheds
 list_range = 1:2
 # Define input folder
-prediction_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/predictions/test/'
+prediction_folder = '/home/twnawrocki_rstudio/predictions/carex_aquatilis/'
 # Define output folder
-raster_folder = 'K:/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/rasters/test/'
+raster_folder = '/home/twnawrocki_rstudio/rasters/carex_aquatilis/'
 ```
 
 ```{r libraries}
