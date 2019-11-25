@@ -17,7 +17,7 @@ library(gridExtra)
 library(scales)
 
 # Define data directory
-data_directory = 'K:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/'
+data_directory = 'N:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Project_GIS/Data_Output/modelResults/'
 
 # Import data
 ca_file = paste(data_directory, 'carex_aquatilis/prediction.csv', sep='')
@@ -33,30 +33,29 @@ rt_predictions = read.csv(rt_file, header=TRUE, stringsAsFactors = FALSE)
 sp_predictions = read.csv(sp_file, header=TRUE, stringsAsFactors = FALSE)
 vv_predictions = read.csv(vv_file, header=TRUE, stringsAsFactors = FALSE)
 
-# Define a function to calculate mean predictions for AIM NPR-A
-meanAIM = function(predictions, species_name) {
+# Define a function to filter predictions for AIM NPR-A
+filterAIM = function(predictions, species_name) {
   predictions_aim = predictions %>%
-    filter(project == 'AIM NPR-A') %>%
-    group_by(siteID, cover) %>%
-    summarize(prediction = mean(prediction))
+    filter(project == 'AIM NPR-A')
   predictions_aim$species = species_name
+  predictions_aim$prediction[predictions_aim$prediction < 0] = 0
   return(predictions_aim)
 }
 
-# Find mean predictions from AIM NPR-A
-ca_mean = meanAIM(ca_predictions, 'Carex aquatilis')
-ea_mean = meanAIM(ea_predictions, 'Eriophorum angustifolium')
-ev_mean = meanAIM(ev_predictions, 'Eriophorum vaginatum')
-rt_mean = meanAIM(rt_predictions, 'Rhododendron tomentosum')
-sp_mean = meanAIM(sp_predictions, 'Salix pulchra')
-vv_mean = meanAIM(vv_predictions, 'Vaccinium vitis-idaea')
+# Filter predictions from AIM NPR-A
+ca_aim = filterAIM(ca_predictions, 'Carex aquatilis')
+ea_aim = filterAIM(ea_predictions, 'Eriophorum angustifolium')
+ev_aim = filterAIM(ev_predictions, 'Eriophorum vaginatum')
+rt_aim = filterAIM(rt_predictions, 'Rhododendron tomentosum')
+sp_aim = filterAIM(sp_predictions, 'Salix pulchra')
+vv_aim = filterAIM(vv_predictions, 'Vaccinium vitis-idaea')
 
 # Merge mean data frames
-mean_predictions = do.call('rbind', list(ca_mean, ea_mean, ev_mean, rt_mean, sp_mean, vv_mean))
+aim_predictions = do.call('rbind', list(ca_aim, ea_aim, ev_aim, rt_aim, sp_aim, vv_aim))
 
 # Plot all species
-x_max = max(mean_predictions$cover)
-y_max = max(mean_predictions$prediction)
+x_max = max(aim_predictions$cover)
+y_max = max(aim_predictions$prediction)
 font = theme(strip.text = element_text(size=14, color='black', face='italic'),
              strip.background = element_rect(color = 'black', fill = 'white'),
              axis.text = element_text(size = 12),
@@ -66,7 +65,7 @@ font = theme(strip.text = element_text(size=14, color='black', face='italic'),
              axis.title.x = element_text(margin = margin(t=10)),
              axis.title.y = element_text(margin = margin(r=10))
              )
-mean_plot = ggplot(data=mean_predictions, aes(x=cover, y=prediction)) +
+mean_plot = ggplot(data=aim_predictions, aes(x=cover, y=prediction)) +
   theme_bw() +
   font +
   geom_smooth(method='loess',
@@ -88,5 +87,5 @@ mean_plot = ggplot(data=mean_predictions, aes(x=cover, y=prediction)) +
   scale_y_continuous(breaks=seq(0, 100, by=10), limits=c(0,y_max), expand = c(0.02, 0))
 
 # Save and export jpg at 600 dpi
-tif_output = 'K:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Documents/GradientCover_EcologicalApplications/Figures/Fig3.jpg'
+tif_output = 'N:/ACCS_Work/Projects/VegetationEcology/Data_Harmonization/Documents/GradientCover_EcologicalApplications/Figures/Fig3.jpg'
 ggsave(tif_output, plot=mean_plot, device='jpeg', path=NULL, scale=1, width=8, height=8, units='in', dpi=600, limitsize=TRUE)

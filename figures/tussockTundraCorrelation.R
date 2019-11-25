@@ -17,17 +17,16 @@ rt_predictions = read.csv(rt_file, header=TRUE, stringsAsFactors = FALSE)
 sp_predictions = read.csv(sp_file, header=TRUE, stringsAsFactors = FALSE)
 vv_predictions = read.csv(vv_file, header=TRUE, stringsAsFactors = FALSE)
 
-# Define a function to calculate mean predictions for AIM NPR-A
-meanAIM = function(predictions) {
+# Define a function to filter predictions for AIM NPR-A
+filterAIM = function(predictions) {
   predictions_aim = predictions %>%
-    filter(project == 'AIM NPR-A') %>%
-    group_by(siteID, cover) %>%
-    summarize(prediction = mean(prediction))
+    filter(project == 'AIM NPR-A')
+  predictions_aim$prediction[predictions_aim$prediction < 0] = 0
   return(predictions_aim)
 }
 
-# Find mean predictions from AIM NPR-A
-ca_mean = meanAIM(ca_predictions)
+# Filter predictions from AIM NPR-A
+ca_aim = meanAIM(ca_predictions)
 ea_mean = meanAIM(ea_predictions)
 ev_mean = meanAIM(ev_predictions)
 rt_mean = meanAIM(rt_predictions)
@@ -35,27 +34,27 @@ sp_mean = meanAIM(sp_predictions)
 vv_mean = meanAIM(vv_predictions)
 
 # Rename columns
-ca_mean = ca_mean %>%
+ca_aim = ca_aim %>%
   rename(ca_cover=cover) %>%
   rename(ca_prediction=prediction)
-ev_mean = ev_mean %>%
+ev_aim = ev_aim %>%
   rename(ev_cover=cover) %>%
   rename(ev_prediction=prediction)
-rt_mean = rt_mean %>%
+rt_aim = rt_aim %>%
   rename(rt_cover=cover) %>%
   rename(rt_prediction=prediction)
-sp_mean = sp_mean %>%
+sp_aim = sp_aim %>%
   rename(sp_cover=cover) %>%
   rename(sp_prediction=prediction)
-vv_mean = vv_mean %>%
+vv_aim = vv_aim %>%
   rename(vv_cover=cover) %>%
   rename(vv_prediction=prediction)
 
 # Combine predictions for EV, RT, and VV into a single data frame
-data_all = inner_join(ca_mean, ev_mean, by='siteID')
-data_all = inner_join(data_all, rt_mean, by='siteID')
-data_all = inner_join(data_all, sp_mean, by='siteID')
-data_all = inner_join(data_all, vv_mean, by='siteID')
+data_all = inner_join(ca_aim, ev_aim, by='siteID')
+data_all = inner_join(data_all, rt_aim, by='siteID')
+data_all = inner_join(data_all, sp_aim, by='siteID')
+data_all = inner_join(data_all, vv_aim, by='siteID')
 
 # Create cover data frame
 data_cover = data_all %>%
