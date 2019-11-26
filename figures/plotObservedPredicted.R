@@ -2,8 +2,8 @@
 # ---------------------------------------------------------------------------
 # Plot observed vs mean predicted foliar cover by species
 # Author: Timm Nawrocki, Alaska Center for Conservation Science
-# Created on: 2019-03-31
-# Usage: Code chunks must be executed sequentially in R Studio or R Studio Server installation. Created using R Studio version 1.1.456 and R 3.5.1.
+# Last Updated: 2019-11-25
+# Usage: Script should be executed in R 3.6.1+.
 # Description: "Plot observed vs mean predicted foliar cover by species" creates a plot (Figure 3) showing the observed vs mean predicted values with theoretical 1:1 ratio line and loess smoothed conditional mean.
 # ---------------------------------------------------------------------------
 

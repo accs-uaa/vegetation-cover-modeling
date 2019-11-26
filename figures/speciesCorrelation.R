@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------
+# Calculate foliar cover correlation among species
+# Author: Timm Nawrocki, Alaska Center for Conservation Science
+# Last Updated: 2019-11-25
+# Usage: Script should be executed in R 3.6.1+.
+# Description: "Calculate foliar cover correlation among species" calculates and plots the correlation (r) among species for both observed and predicted foliar cover.
+# ---------------------------------------------------------------------------
+
 # Import required libraries
 library(dplyr)
 library(tidyr)
