@@ -375,4 +375,4 @@ Nawrocki, T.W. 2019. Vegetation Cover Modeling. Git Repository. Available: https
 1. Chen, T., and C. Guestrin. 2016. XGBoost: A Scalable Tree Boosting System. Proceedings of the 22nd Association for Computing Machinery International Conference. 785-794.
 
 ### License
-This repository and its contents are licensed under Creative Commons Attribution-Share Alike.
+This project is provided under the GNU General Public License v3.0. It is free to use and modify in part or in whole.
